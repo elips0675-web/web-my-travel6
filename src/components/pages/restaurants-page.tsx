@@ -51,7 +51,7 @@ const generateSlug = (name: string, index: number) => {
 
 function RestaurantCard({ recommendation, index }: { recommendation: RecommendationWithSlug, index: number }) {
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-xl">
+    <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
       <div className="relative aspect-video">
         <Image
           src={recommendation.imageUrl || `https://picsum.photos/seed/restaurant${index}/800/600`}
@@ -61,7 +61,7 @@ function RestaurantCard({ recommendation, index }: { recommendation: Recommendat
           data-ai-hint={`${recommendation.cuisine.toLowerCase()} food`}
         />
       </div>
-      <div className="p-4">
+      <div className="p-4 flex-grow">
         <div className="flex justify-between items-start mb-2">
             <div>
                 <CardDescription>{recommendation.cuisine} • {recommendation.priceRange}</CardDescription>
@@ -80,9 +80,9 @@ function RestaurantCard({ recommendation, index }: { recommendation: Recommendat
             {recommendation.location}
         </div>
       </div>
-       <CardFooter className="bg-secondary/30">
-           <Button asChild variant="link" className="w-full text-center">
-             <Link href={`/restaurants/${recommendation.slug}`}>Посмотреть меню и забронировать</Link>
+       <CardFooter className="bg-secondary/30 p-4 flex justify-end mt-auto">
+            <Button asChild>
+                <Link href={`/restaurants/${recommendation.slug}`}>Забронировать</Link>
             </Button>
       </CardFooter>
     </Card>
@@ -93,9 +93,9 @@ function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <Card key={i} className="overflow-hidden">
+        <Card key={i} className="overflow-hidden flex flex-col">
             <Skeleton className="h-48 w-full" />
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 flex-grow">
                 <div className="flex justify-between">
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-6 w-1/4" />
@@ -104,8 +104,8 @@ function LoadingSkeleton() {
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-4 w-1/2" />
             </div>
-             <CardFooter className="bg-secondary/30">
-                <Skeleton className="h-8 w-full" />
+             <CardFooter className="bg-secondary/30 p-4 flex justify-end mt-auto">
+                <Skeleton className="h-10 w-28" />
              </CardFooter>
         </Card>
       ))}

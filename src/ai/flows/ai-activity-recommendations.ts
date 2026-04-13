@@ -13,13 +13,13 @@ import {z} from 'genkit';
 const AiActivityRecommendationsInputSchema = z.object({
   destination: z.string().describe('The travel destination (city, country).'),
   preferences: z.string().describe('User preferences for activities, e.g., "for a couple, active, indoors".'),
-  activityTypes: z.array(z.string()).optional().describe('Preferred activity types, e.g., ["VR", "quest", "bowling"]. If not specified, suggest a mix.'),
+  activityTypes: z.array(z.string()).optional().describe('Preferred activity types, e.g., ["VR", "quest", "bowling", "Рыбалка"]. If not specified, suggest a mix.'),
 });
 export type AiActivityRecommendationsInput = z.infer<typeof AiActivityRecommendationsInputSchema>;
 
 const ActivityRecommendationSchema = z.object({
   name: z.string().describe('The name of the activity or venue.'),
-  type: z.string().describe('The type of activity (e.g., "VR-арена", "Квест", "Боулинг", "Картинг").'),
+  type: z.string().describe('The type of activity (e.g., "VR-арена", "Квест", "Боулинг", "Картинг", "Рыбалка").'),
   description: z.string().describe('A brief, engaging description of the activity.'),
   price: z.string().describe('An estimated price for the activity (e.g., "от 20 BYN/час").'),
   location: z.string().describe('The address or area where the activity is located.'),
@@ -50,7 +50,7 @@ Preferred Activity Types (if specified): {{{activityTypes}}}
 
 For each recommendation, provide the following in Russian:
 - name: The name of the activity or venue.
-- type: The type of activity (e.g., "VR-арена", "Квест", "Боулинг", "Картинг").
+- type: The type of activity (e.g., "VR-арена", "Квест", "Боулинг", "Картинг", "Рыбалка").
 - description: A brief, engaging description of the activity.
 - price: An estimated price for the activity (e.g., "от 20 BYN/час").
 - location: The address or area where the activity is located.

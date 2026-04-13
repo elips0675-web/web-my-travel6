@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const accommodationTypes = ["Отель", "Апартаменты", "Хостел", "Гостевой дом"];
+const accommodationTypes = ["Отель", "Апартаменты", "Хостел", "Гостевой дом", "Агротуризм"];
 
 export function HousingFilters() {
   return (

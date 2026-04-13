@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-const activityTypes = ["VR", "Квест", "Боулинг", "Картинг", "Настольные игры", "Для детей"];
+const activityTypes = ["VR", "Квест", "Боулинг", "Картинг", "Настольные игры", "Для детей", "Рыбалка"];
 const audienceTypes = ["Для двоих", "Для компании", "Для семьи"];
 
 export function ActivityFilters() {

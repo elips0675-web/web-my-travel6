@@ -15,7 +15,7 @@ const AiHousingRecommendationsInputSchema = z.object({
   startDate: z.string().describe('The start date of the trip in YYYY-MM-DD format.'),
   endDate: z.string().describe('The end date of the trip in YYYY-MM-DD format.'),
   preferences: z.string().describe('User preferences for accommodation, e.g., "luxury, near city center, pet-friendly, budget-friendly, family-friendly".'),
-  accommodationTypes: z.array(z.string()).optional().describe('Preferred accommodation types, e.g., ["hotel", "apartment", "hostel", "guesthouse"]. If not specified, suggest a mix.'),
+  accommodationTypes: z.array(z.string()).optional().describe('Preferred accommodation types, e.g., ["hotel", "apartment", "hostel", "guesthouse", "Агротуризм"]. If not specified, suggest a mix.'),
 });
 export type AiHousingRecommendationsInput = z.infer<typeof AiHousingRecommendationsInputSchema>;
 
@@ -23,7 +23,7 @@ const AiHousingRecommendationsOutputSchema = z.object({
   recommendations: z.array(
     z.object({
       name: z.string().describe('The name of the accommodation.'),
-      type: z.string().describe('The type of accommodation (e.g., hotel, apartment, hostel, guesthouse).'),
+      type: z.string().describe('The type of accommodation (e.g., hotel, apartment, hostel, guesthouse, Агротуризм).'),
       location: z.string().describe('The location of the accommodation (city, area).'),
       description: z.string().describe('A brief description highlighting the key features and why it matches the user preferences.'),
       priceEstimate: z.string().optional().describe('An estimated price range per night (e.g., "$100-150" or "Budget").'),
@@ -55,7 +55,7 @@ Preferred Accommodation Types (if specified): {{{accommodationTypes}}}
 
 For each recommendation, provide the following:
 - Name: The name of the accommodation.
-- Type: The type of accommodation (e.g., hotel, apartment, hostel, guesthouse).
+- Type: The type of accommodation (e.g., hotel, apartment, hostel, guesthouse, Агротуризм).
 - Location: The city or specific area where the accommodation is located.
 - Description: A brief, compelling description highlighting its key features and how it aligns with the user's preferences.
 - Price Estimate: An estimated price range per night (e.g., "$100-150" or "Budget").

@@ -65,7 +65,7 @@ const filterConfig = {
     },
     accommodation: {
         fields: [
-            { key: 'type', label: 'Тип жилья', options: ['Отель', 'Апартаменты', 'Дом', 'Хостел'] },
+            { key: 'type', label: 'Тип жилья', options: ['Отель', 'Апартаменты', 'Дом', 'Хостел', 'Агротуризм'] },
             { key: 'amenities', label: 'Удобства', options: ['WiFi', 'Бассейн', 'SPA', 'Кухня', 'Баня', 'Барбекю'] },
             { key: 'priceRange', label: 'Цена за ночь', type: 'range', min: 0, max: 20000 }
         ]
@@ -79,7 +79,7 @@ const filterConfig = {
     },
     entertainment: {
         fields: [
-            { key: 'type', label: 'Тип развлечения', options: ['Активный отдых', 'Квест', 'Экскурсия', 'Экстрим'] },
+            { key: 'type', label: 'Тип развлечения', options: ['Активный отдых', 'Квест', 'Экскурсия', 'Экстрим', 'Рыбалка'] },
             { key: 'ageGroup', label: 'Возраст', options: ['0+', '6+', '12+', '16+', '18+'] },
             { key: 'priceRange', label: 'Цена', type: 'range', min: 0, max: 20000 }
         ]
@@ -129,17 +129,6 @@ const MapComponent = ({ items, activeItem, onMarkerClick, selectedCategories }: 
             });
         }
     };
-    
-    if (!apiKey) {
-        return (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div className="text-center text-gray-600 p-4">
-                    <h3 className="font-bold text-lg mb-2">Google Maps API ключ не настроен.</h3>
-                    <p>Пожалуйста, добавьте NEXT_PUBLIC_GOOGLE_MAPS_API_KEY в ваш .env.local файл.</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <APIProvider apiKey={apiKey!}>

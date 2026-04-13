@@ -179,48 +179,82 @@ const MapComponent = ({ items, activeItem, onMarkerClick, selectedCategories }: 
     );
 };
 
-// ... a lot of code from the user, I will put it here
-
 const ResultCard = ({ item, isActive, onClick, onHover }: {item: any, isActive: boolean, onClick: (item:any) => void, onHover: (item:any) => void}) => {
     const config = categoryLabels[item.category as keyof typeof categoryLabels];
+    const Icon = config.icon;
     
     return (
         <div 
-            className={cn('card bg-white rounded-xl p-4 cursor-pointer border-2 transition-all', {
-                'active border-indigo-500 bg-indigo-50': isActive,
-                'border-transparent hover:border-gray-200': !isActive,
+            className={cn('bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 card-enter group cursor-pointer', {
+                'ring-2 ring-indigo-500': isActive
             })}
             onClick={() => onClick(item)}
             onMouseEnter={() => onHover(item)}
         >
-            <div className="flex gap-4">
+            <div className="relative h-48 overflow-hidden">
                 <Image 
                     src={item.image} 
                     alt={item.title}
-                    width={96}
-                    height={96}
-                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                    width={400}
+                    height={300}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span 
-                            className="w-2 h-2 rounded-full"
-                            style={{ background: config.color }}
-                        />
-                        <span className="text-xs text-gray-500">{config.label}</span>
+                <div className={`absolute top-3 left-3 ${config.bgColor} text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5`}>
+                    <Icon />
+                    {config.label}
+                </div>
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
+                    <Icons.Star />
+                    <span className="font-semibold">{item.rating}</span>
+                </div>
+            </div>
+            <div className="p-4">
+                <h3 className="font-bold text-lg text-gray-800 mb-2">{item.title}</h3>
+                <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
+                    <Icons.MapPin />
+                    {item.location}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-3">
+                    {item.type && (
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs">
+                            {item.type}
+                        </span>
+                    )}
+                    {item.duration && (
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                            <Icons.Clock />
+                            {item.duration}
+                        </span>
+                    )}
+                    {item.seats && (
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                            <Icons.Users />
+                            {item.seats} мест
+                        </span>
+                    )}
+                     {item.amenities && item.amenities.slice(0, 2).map((a: string, i: number) => (
+                        <span key={i} className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs">
+                            {a}
+                        </span>
+                    ))}
+                    {item.cuisine && (
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs">
+                            {item.cuisine}
+                        </span>
+                    )}
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div>
+                        <span className="text-2xl font-bold text-indigo-600">{item.price.toLocaleString()}</span>
+                        <span className="text-gray-400 text-sm"> ₽</span>
+                        {item.category === 'accommodation' && <span className="text-gray-400 text-sm">/ночь</span>}
+                        {item.category === 'cars' && <span className="text-gray-400 text-sm">/сутки</span>}
                     </div>
-                    <h3 className="font-bold text-gray-800 truncate mb-1">{item.title}</h3>
-                    <div className="flex items-center gap-1 text-gray-500 text-xs mb-2">
-                        <Icons.MapPin />
-                        <span className="truncate">{item.location}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="font-bold text-indigo-600">{item.price.toLocaleString()} ₽</span>
-                        <div className="flex items-center gap-1 text-xs">
-                            <Icons.Star />
-                            <span>{item.rating}</span>
-                        </div>
-                    </div>
+                    <button className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-indigo-700 transition-colors">
+                        Подробнее
+                    </button>
                 </div>
             </div>
         </div>
@@ -232,8 +266,8 @@ const FilterSection = ({ category, activeFilters, onFilterChange }: { category: 
     if (!config) return null;
 
     return (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-3">
-            <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-4">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                 <span 
                     className="w-2 h-2 rounded-full"
                     style={{ background: categoryLabels[category as keyof typeof categoryLabels].color }}
@@ -242,8 +276,8 @@ const FilterSection = ({ category, activeFilters, onFilterChange }: { category: 
             </h3>
             
             {config.fields.map(field => (
-                <div key={field.key} className="mb-3 last:mb-0">
-                    <label className="text-xs font-medium text-gray-500 mb-2 block">
+                <div key={field.key} className="mb-4 last:mb-0">
+                    <label className="text-sm font-medium text-gray-600 mb-2 block">
                         {field.label}
                     </label>
                     
@@ -253,17 +287,20 @@ const FilterSection = ({ category, activeFilters, onFilterChange }: { category: 
                                 type="range"
                                 min={field.min}
                                 max={field.max}
-                                step={500}
+                                step={1000}
                                 value={activeFilters[category]?.[field.key] || field.max}
                                 onChange={(e) => onFilterChange(category, field.key, parseInt(e.target.value))}
-                                className="range-slider mb-1"
+                                className="range-slider mb-2"
                             />
-                            <div className="text-xs text-gray-600 font-medium">
-                                До {(activeFilters[category]?.[field.key] || field.max).toLocaleString()} ₽
+                            <div className="flex justify-between text-sm text-gray-500">
+                                <span>{field.min?.toLocaleString()} ₽</span>
+                                <span className="font-medium text-indigo-600">
+                                    До {(activeFilters[category]?.[field.key] || field.max).toLocaleString()} ₽
+                                </span>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-2">
                             {field.options && field.options.map(option => {
                                 const isActive = activeFilters[category]?.[field.key]?.includes(option);
                                 return (
@@ -276,8 +313,8 @@ const FilterSection = ({ category, activeFilters, onFilterChange }: { category: 
                                                 : [...current, option];
                                             onFilterChange(category, field.key, updated);
                                         }}
-                                        className={cn('px-2 py-1 rounded-lg text-xs font-medium transition-all', {
-                                            'bg-indigo-600 text-white': isActive,
+                                        className={cn('filter-chip px-3 py-1.5 rounded-full text-sm font-medium transition-all', {
+                                            'bg-indigo-600 text-white shadow-md': isActive,
                                             'bg-gray-100 text-gray-600 hover:bg-gray-200': !isActive,
                                         })}
                                     >
@@ -389,7 +426,7 @@ export default function FilterMapContent() {
 
             <div className="flex-1 overflow-hidden flex">
                 {(viewMode === 'split' || viewMode === 'list') && (
-                    <aside className={cn('bg-gray-50 border-r border-gray-200 overflow-y-auto p-4', viewMode === 'split' ? 'w-80 hidden lg:block' : 'w-full max-w-sm')}>
+                    <aside className={cn('bg-gray-50 border-r border-gray-200 overflow-y-auto', viewMode === 'split' ? 'w-80 hidden lg:block p-4' : 'w-full max-w-sm p-4')}>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-gray-800">Фильтры</h2>
                             {Object.keys(activeFilters).length > 0 && (<button onClick={resetFilters} className="text-xs text-indigo-600 font-medium hover:underline">Сбросить</button>)}
@@ -410,7 +447,7 @@ export default function FilterMapContent() {
                                 <option value="price-desc">Сначала дороже</option>
                             </select>
                         </div>
-                        <div className="p-4 space-y-3">
+                        <div className="p-4 space-y-4">
                             {filteredData.map(item => (<div key={item.id} id={`item-${item.id}`}><ResultCard item={item} isActive={activeItem?.id === item.id} onClick={setActiveItem} onHover={setActiveItem} /></div>))}
                             {filteredData.length === 0 && (<div className="text-center py-12"><div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center"><Icons.Filter /></div><p className="text-gray-500 text-sm">Ничего не найдено</p></div>)}
                         </div>

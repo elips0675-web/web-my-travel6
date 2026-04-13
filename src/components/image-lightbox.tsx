@@ -24,19 +24,33 @@ export function ImageLightbox({ images, startIndex = 0, isOpen, onOpenChange }: 
       return;
     }
 
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
+    const handleSelect = () => {
+      setCount(api.scrollSnapList().length);
+      setCurrent(api.selectedScrollSnap() + 1);
+    };
     
-    if (startIndex) {
+    api.on('select', handleSelect);
+    api.on('reInit', handleSelect);
+    
+    // Set initial state
+    handleSelect();
+
+    return () => {
+        api.off('select', handleSelect);
+        api.off('reInit', handleSelect);
+    };
+  }, [api]);
+
+  useEffect(() => {
+    if (!api || !isOpen) {
+        return;
+    }
+
+    if (api.selectedScrollSnap() !== startIndex) {
         api.scrollTo(startIndex, true);
     }
 
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-
     const onKeyDown = (e: KeyboardEvent) => {
-        if (!isOpen) return;
         if (e.key === 'ArrowRight') {
             api.scrollNext();
         } else if (e.key === 'ArrowLeft') {
@@ -53,7 +67,7 @@ export function ImageLightbox({ images, startIndex = 0, isOpen, onOpenChange }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black/80 border-0 p-0 max-w-full w-full h-full flex items-center justify-center">
+      <DialogContent className="bg-black/90 border-0 p-0 max-w-full w-full h-full flex items-center justify-center">
         <DialogTitle className="sr-only">Галерея изображений</DialogTitle>
         <DialogDescription className="sr-only">
           Лайтбокс с галереей изображений. Используйте стрелки для навигации между изображениями или клавишу Escape для закрытия.

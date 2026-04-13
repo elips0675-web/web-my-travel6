@@ -1,10 +1,16 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-banner",
-      "description": "A beautiful travel landscape with mountains and a lake.",
-      "imageUrl": "https://picsum.photos/seed/hero/1920/1080",
-      "imageHint": "travel landscape"
+      "id": "hero-banner-kayleen",
+      "description": "Abstract colorful background for hero section.",
+      "imageUrl": "https://picsum.photos/seed/kayleen-hero/1920/1080",
+      "imageHint": "abstract background"
+    },
+    {
+      "id": "why-choose-us",
+      "description": "A happy traveler enjoying the view.",
+      "imageUrl": "https://picsum.photos/seed/why-us/800/1000",
+      "imageHint": "happy traveler"
     },
     {
       "id": "activity-sailing",

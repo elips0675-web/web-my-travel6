@@ -13,18 +13,18 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="ru" className="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen bg-background')}>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+        <header className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 border-b border-border/40 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
               <Compass className="h-6 w-6 text-primary" />
-              <span className="font-headline text-lg font-bold text-primary">Путевой Компас</span>
+              <span className="font-headline text-xl font-bold text-foreground">Путевой Компас</span>
             </Link>
             <nav className="hidden md:flex items-center gap-4">
               <Link href="/tours" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </Link>
           </Button>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1">
           {children}
         </main>
         <Toaster />

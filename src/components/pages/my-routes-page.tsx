@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import type { AiTourRecommendationsOutput } from "@/ai/flows/ai-tour-recommendations";
 
 const searchSchema = z.object({
   destination: z.string().min(1, { message: "Обязательное поле" }),
@@ -42,38 +43,66 @@ export default function MyRoutesPageContent() {
         router.push(`/tours?${params.toString()}`);
     }
 
-    const activities = [
+    const tours: (AiTourRecommendationsOutput[0] & { location: string })[] = [
         {
-            title: "Морские прогулки на яхте",
-            location: "Сочи, Россия",
-            image: PlaceHolderImages.find(img => img.id === 'activity-sailing'),
-            rating: 4.9,
-            price: 5500,
-            duration: "5 часов"
+            name: "Обзорная экскурсия по Риму",
+            description: "Откройте для себя величие Колизея, Римского форума и Пантеона в этой увлекательной пешеходной экскурсии.",
+            type: "культурный",
+            location: "Рим, Италия",
+            priceRange: "€50",
+            bookingLink: "#",
+            relevanceScore: 95,
+            duration: "4 часа",
+            groupSize: "до 15 чел.",
+            highlights: ["Колизей", "Римский форум", "Пантеон"],
+            included: ["Гид", "Наушники"],
+            excluded: ["Входные билеты", "Еда и напитки"],
+            galleryImageUrls: ["https://picsum.photos/seed/rome-tour-1/800/600"]
         },
         {
-            title: "Поход к Агурским водопадам",
-            location: "Сочи, Россия",
-            image: PlaceHolderImages.find(img => img.id === 'activity-hiking'),
-            rating: 4.8,
-            price: 2500,
-            duration: "1 день"
+            name: "Гастрономический тур по Токио",
+            description: "Попробуйте настоящие суши, рамен и другие японские деликатесы на оживленных улицах Токио.",
+            type: "еда",
+            location: "Токио, Япония",
+            priceRange: "¥12000",
+            bookingLink: "#",
+            relevanceScore: 92,
+            duration: "3 часа",
+            groupSize: "до 8 чел.",
+            highlights: ["Рынок Цукидзи", "Дегустация саке", "Мастер-класс по суши"],
+            included: ["Гид", "Дегустации"],
+            excluded: ["Обед", "Транспорт"],
+            galleryImageUrls: ["https://picsum.photos/seed/tokyo-tour-1/800/600"]
         },
         {
-            title: "Мастер-класс по хинкали",
-            location: "Тбилиси, Грузия",
-            image: PlaceHolderImages.find(img => img.id === 'activity-cooking'),
-            rating: 4.9,
-            price: 4000,
-            duration: "3 часа"
+            name: "Полет на вертолете над Гранд-Каньоном",
+            description: "Насладитесь захватывающими видами Гранд-Каньона с высоты птичьего полета.",
+            type: "приключение",
+            location: "Аризона, США",
+            priceRange: "$250",
+            bookingLink: "#",
+            relevanceScore: 98,
+            duration: "1 час",
+            groupSize: "до 6 чел.",
+            highlights: ["Вид на плотину Гувера", "Полет над каньоном", "Фото-остановки"],
+            included: ["Полет", "Трансфер из отеля"],
+            excluded: ["Сборы национального парка"],
+            galleryImageUrls: ["https://picsum.photos/seed/canyon-tour-1/800/600"]
         },
         {
-            title: "Экскурсия в Лувр с гидом",
-            location: "Париж, Франция",
-            image: PlaceHolderImages.find(img => img.id === 'activity-museum'),
-            rating: 4.7,
-            price: 6000,
-            duration: "4 часа"
+            name: "Винный тур по Тоскане",
+            description: "Посетите знаменитые винодельни региона Кьянти и насладитесь дегустацией лучших итальянских вин.",
+            type: "еда",
+            location: "Тоскана, Италия",
+            priceRange: "€90",
+            bookingLink: "#",
+            relevanceScore: 94,
+            duration: "Полный день",
+            groupSize: "до 25 чел.",
+            highlights: ["Дегустация вина Кьянти", "Посещение 2 виноделен", "Обед на ферме"],
+            included: ["Транспорт", "Дегустации", "Обед"],
+            excluded: ["Личные расходы"],
+            galleryImageUrls: ["https://picsum.photos/seed/tuscany-tour-1/800/600"]
         }
     ];
     
@@ -183,33 +212,33 @@ export default function MyRoutesPageContent() {
                                 <p className="text-lg text-muted-foreground">Исследуйте мир с нашими самыми популярными и высоко оцененными турами.</p>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                                {activities.map((activity, index) => (
+                                {tours.map((tour, index) => (
                                     <div key={index} className="group flex flex-col">
                                         <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
                                             <Image
-                                                src={activity.image?.imageUrl || `https://picsum.photos/seed/${activity.title}/600/400`}
-                                                alt={activity.image?.description || activity.title}
+                                                src={tour.galleryImageUrls[0]}
+                                                alt={tour.name}
                                                 width={600}
                                                 height={400}
                                                 className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
-                                                data-ai-hint={activity.image?.imageHint || activity.title.toLowerCase().replace(' ', '')}
+                                                data-ai-hint={tour.type}
                                             />
                                             <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
                                                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                <span>{activity.rating.toFixed(1)}</span>
+                                                <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
                                             </div>
                                         </div>
                                         <div className="pt-4 flex flex-col flex-grow">
                                             <div className="flex items-center text-sm text-muted-foreground mb-2">
                                                 <MapPin className="w-4 h-4 mr-1.5" />
-                                                {activity.location}
+                                                {tour.location}
                                             </div>
-                                            <h3 className="font-bold font-headline text-xl mb-3 text-foreground flex-grow group-hover:text-primary transition-colors">{activity.title}</h3>
+                                            <h3 className="font-bold font-headline text-xl mb-3 text-foreground flex-grow group-hover:text-primary transition-colors">{tour.name}</h3>
                                             <div className="flex justify-between items-center mt-auto">
                                                 <p className="text-lg font-bold text-foreground">
-                                                    {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(activity.price)}
+                                                    {tour.priceRange}
                                                 </p>
-                                                <div className="text-sm text-muted-foreground">{activity.duration}</div>
+                                                <div className="text-sm text-muted-foreground">{tour.duration}</div>
                                             </div>
                                         </div>
                                     </div>

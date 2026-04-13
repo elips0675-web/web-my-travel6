@@ -105,10 +105,10 @@ const MapComponent = ({ items, activeItem, onMarkerClick, selectedCategories }: 
     const [center, setCenter] = useState({ lat: 55.76, lng: 37.64 });
 
     useEffect(() => {
-        if (items.length > 0) {
+        if (map && items.length > 0) {
             const bounds = new window.google.maps.LatLngBounds();
             items.forEach(item => bounds.extend(new window.google.maps.LatLng(item.coords.lat, item.coords.lng)));
-            map?.fitBounds(bounds);
+            map.fitBounds(bounds);
         }
     }, [items, map]);
     

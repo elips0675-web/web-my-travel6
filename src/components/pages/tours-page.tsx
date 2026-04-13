@@ -70,7 +70,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/rome-tour-1/800/600",
             "https://picsum.photos/seed/rome-tour-2/800/600",
-            "https://picsum.photos/seed/rome-tour-3/800/600"
+            "https://picsum.photos/seed/rome-tour-3/800/600",
+            "https://picsum.photos/seed/rome-tour-4/800/600"
         ]
     },
     {
@@ -88,7 +89,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/tokyo-tour-1/800/600",
             "https://picsum.photos/seed/tokyo-tour-2/800/600",
-            "https://picsum.photos/seed/tokyo-tour-3/800/600"
+            "https://picsum.photos/seed/tokyo-tour-3/800/600",
+            "https://picsum.photos/seed/tokyo-tour-4/800/600"
         ]
     },
     {
@@ -106,7 +108,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/canyon-tour-1/800/600",
             "https://picsum.photos/seed/canyon-tour-2/800/600",
-            "https://picsum.photos/seed/canyon-tour-3/800/600"
+            "https://picsum.photos/seed/canyon-tour-3/800/600",
+            "https://picsum.photos/seed/canyon-tour-4/800/600"
         ]
     },
     {
@@ -124,7 +127,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/tuscany-tour-1/800/600",
             "https://picsum.photos/seed/tuscany-tour-2/800/600",
-            "https://picsum.photos/seed/tuscany-tour-3/800/600"
+            "https://picsum.photos/seed/tuscany-tour-3/800/600",
+            "https://picsum.photos/seed/tuscany-tour-4/800/600"
         ]
     },
      {
@@ -142,7 +146,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/diving-tour-1/800/600",
             "https://picsum.photos/seed/diving-tour-2/800/600",
-            "https://picsum.photos/seed/diving-tour-3/800/600"
+            "https://picsum.photos/seed/diving-tour-3/800/600",
+            "https://picsum.photos/seed/diving-tour-4/800/600"
         ]
     },
     {
@@ -160,7 +165,8 @@ const mockTourData: AiTourRecommendationsOutput = [
         galleryImageUrls: [
             "https://picsum.photos/seed/louvre-tour-1/800/600",
             "https://picsum.photos/seed/louvre-tour-2/800/600",
-            "https://picsum.photos/seed/louvre-tour-3/800/600"
+            "https://picsum.photos/seed/louvre-tour-3/800/600",
+            "https://picsum.photos/seed/louvre-tour-4/800/600"
         ]
     }
 ];

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { type AiTourRecommendationsOutput } from '@/ai/flows/ai-tour-recommendations';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus, Clock, Info, CheckCircle, XCircle } from 'lucide-react';
+import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus, Clock, Info, CheckCircle, XCircle, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -15,6 +15,7 @@ import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
 import { type DateRange } from 'react-day-picker';
+import { ImageLightbox } from '../image-lightbox';
 
 type TourRecommendation = AiTourRecommendationsOutput[0] & { slug: string };
 
@@ -129,6 +130,8 @@ function PageSkeleton() {
 export default function TourDetailsPageContent({ slug }: { slug: string }) {
     const [tour, setTour] = useState<TourRecommendation | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
     useEffect(() => {
         const storedToursRaw = sessionStorage.getItem('tourRecommendations');
@@ -161,112 +164,132 @@ export default function TourDetailsPageContent({ slug }: { slug: string }) {
             </div>
         );
     }
-
+    
     const mainImage = tour.galleryImageUrls?.[0] || `https://picsum.photos/seed/${slug}/1200/800`;
-    const galleryImages = tour.galleryImageUrls?.slice(1, 3) || [
+    const galleryImages = tour.galleryImageUrls?.slice(1) || [
         `https://picsum.photos/seed/${slug}-1/800/600`,
         `https://picsum.photos/seed/${slug}-2/800/600`,
     ];
+    const allImages = tour.galleryImageUrls && tour.galleryImageUrls.length > 0 ? tour.galleryImageUrls : [mainImage, ...galleryImages];
     const rating = (tour.relevanceScore / 20);
 
+    const openLightbox = (index: number) => {
+        setLightboxStartIndex(index);
+        setLightboxOpen(true);
+    };
+
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Button asChild variant="ghost" className="mb-4">
-                <Link href="/tours">
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Назад к поиску
-                </Link>
-            </Button>
-            
-            <header className="mb-8">
-                <CardDescription className="text-sm font-semibold uppercase tracking-wider text-primary mb-2">{tour.type}</CardDescription>
-                <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-4">{tour.name}</h1>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground">
-                    <div className="flex items-center gap-1 font-bold">
-                        <Star className="w-4 h-4 text-primary fill-primary" />
-                        <span>{rating.toFixed(1)}</span>
-                    </div>
-                    <Separator orientation="vertical" className="h-4" />
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" />
-                        <span>{tour.duration}</span>
-                    </div>
-                     <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4" />
-                        <span>{tour.groupSize}</span>
-                    </div>
-                </div>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[60vh] max-h-[550px] mb-8">
-                <div className="relative rounded-lg overflow-hidden">
-                    <Image src={mainImage} alt={tour.name} fill className="object-cover" data-ai-hint="tour landscape" />
-                </div>
-                <div className="hidden md:grid grid-cols-1 gap-2">
-                    {galleryImages.map((img, i) => (
-                        <div key={i} className="relative rounded-lg overflow-hidden">
-                            <Image src={img} alt={`${tour.name} - фото ${i + 2}`} fill className="object-cover" data-ai-hint="tour activity" />
+        <>
+            <div className="container mx-auto px-4 py-8">
+                <Button asChild variant="ghost" className="mb-4">
+                    <Link href="/tours">
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Назад к поиску
+                    </Link>
+                </Button>
+                
+                <header className="mb-8">
+                    <CardDescription className="text-sm font-semibold uppercase tracking-wider text-primary mb-2">{tour.type}</CardDescription>
+                    <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-4">{tour.name}</h1>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground">
+                        <div className="flex items-center gap-1 font-bold">
+                            <Star className="w-4 h-4 text-primary fill-primary" />
+                            <span>{rating.toFixed(1)}</span>
                         </div>
-                    ))}
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            <span>{tour.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4" />
+                            <span>{tour.groupSize}</span>
+                        </div>
+                    </div>
+                </header>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[60vh] max-h-[550px] mb-8">
+                    <button onClick={() => openLightbox(0)} className="relative rounded-lg overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                        <Image src={mainImage} alt={tour.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="tour landscape" />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Search className="w-12 h-12 text-white" />
+                        </div>
+                    </button>
+                    <div className="hidden md:grid grid-cols-1 gap-2">
+                        {galleryImages.slice(0, 2).map((img, i) => (
+                            <button onClick={() => openLightbox(i + 1)} key={i} className="relative rounded-lg overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                                <Image src={img} alt={`${tour.name} - фото ${i + 2}`} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="tour activity" />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Search className="w-8 h-8 text-white" />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
+                    <div className="lg:col-span-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-2xl">Основное</CardTitle>
+                            </CardHeader>
+                            <CardContent className="prose prose-stone dark:prose-invert max-w-none">
+                                <p>{tour.description}</p>
+                                
+                                <h3 className="font-semibold mt-6 mb-2">Ключевые моменты</h3>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    {tour.highlights.map((highlight, i) => <li key={i}>{highlight}</li>)}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                        <Tabs defaultValue="included" className="w-full mt-8">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="included">Что включено</TabsTrigger>
+                                <TabsTrigger value="excluded">Что не включено</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="included">
+                                <Card>
+                                    <CardContent className="pt-6">
+                                        <ul className="space-y-3">
+                                            {tour.included.map((item, i) => (
+                                                <li key={i} className="flex items-center gap-3">
+                                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                            <TabsContent value="excluded">
+                                <Card>
+                                    <CardContent className="pt-6">
+                                        <ul className="space-y-3">
+                                            {tour.excluded.map((item, i) => (
+                                                <li key={i} className="flex items-center gap-3">
+                                                    <XCircle className="w-5 h-5 text-destructive" />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+
+                    <div className="row-start-1 lg:row-auto">
+                        <BookingWidget tour={tour} />
+                    </div>
                 </div>
             </div>
-
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
-                <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-2xl">Основное</CardTitle>
-                        </CardHeader>
-                        <CardContent className="prose prose-stone dark:prose-invert max-w-none">
-                            <p>{tour.description}</p>
-                            
-                            <h3 className="font-semibold mt-6 mb-2">Ключевые моменты</h3>
-                            <ul className="list-disc pl-5 space-y-1">
-                                {tour.highlights.map((highlight, i) => <li key={i}>{highlight}</li>)}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                    <Tabs defaultValue="included" className="w-full mt-8">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="included">Что включено</TabsTrigger>
-                            <TabsTrigger value="excluded">Что не включено</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="included">
-                            <Card>
-                                <CardContent className="pt-6">
-                                     <ul className="space-y-3">
-                                        {tour.included.map((item, i) => (
-                                            <li key={i} className="flex items-center gap-3">
-                                                <CheckCircle className="w-5 h-5 text-green-500" />
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                         <TabsContent value="excluded">
-                             <Card>
-                                <CardContent className="pt-6">
-                                     <ul className="space-y-3">
-                                        {tour.excluded.map((item, i) => (
-                                            <li key={i} className="flex items-center gap-3">
-                                                <XCircle className="w-5 h-5 text-destructive" />
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-
-                <div className="row-start-1 lg:row-auto">
-                    <BookingWidget tour={tour} />
-                </div>
-            </div>
-        </div>
+             <ImageLightbox
+                images={allImages}
+                isOpen={lightboxOpen}
+                onOpenChange={setLightboxOpen}
+                startIndex={lightboxStartIndex}
+            />
+        </>
     );
 }

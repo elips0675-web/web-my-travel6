@@ -3,11 +3,11 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { cn } from '@/lib/utils';
-import { Tour, Home, Coffee, Gamepad2, Car, Star, MapPin, Clock, Users, Filter, X, List, Locate, Search } from 'lucide-react';
+import { Luggage, Home, Coffee, Gamepad2, Car, Star, MapPin, Clock, Users, Filter, X, List, Locate, Search } from 'lucide-react';
 
 // Icons
 const Icons = {
-    Tour: () => <Tour className="w-5 h-5" />,
+    Tour: () => <Luggage className="w-5 h-5" />,
     Home: () => <Home className="w-5 h-5" />,
     Coffee: () => <Coffee className="w-5 h-5" />,
     Gamepad: () => <Gamepad2 className="w-5 h-5" />,

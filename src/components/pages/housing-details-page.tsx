@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { type AiHousingRecommendationsOutput } from '@/ai/flows/ai-housing-recommendations-flow';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus } from 'lucide-react';
+import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus, CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -15,6 +16,8 @@ import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
 import { type DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 type HousingRecommendation = AiHousingRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -43,13 +46,43 @@ function BookingWidget({ recommendation }: { recommendation: HousingRecommendati
             <CardContent className="space-y-4">
                 <div>
                     <Label className="font-semibold">Даты</Label>
-                    <Calendar
-                        mode="range"
-                        numberOfMonths={1}
-                        className="rounded-md border mt-2"
-                        selected={date}
-                        onSelect={setDate}
-                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full justify-start text-left font-normal mt-2",
+                                !date && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date?.from ? (
+                                    date.to ? (
+                                    <>
+                                        {format(date.from, "d LLL", { locale: ru })} -{" "}
+                                        {format(date.to, "d LLL, y", { locale: ru })}
+                                    </>
+                                    ) : (
+                                    format(date.from, "d LLL, y", { locale: ru })
+                                    )
+                                ) : (
+                                    <span>Выберите даты</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={date?.from}
+                                selected={date}
+                                onSelect={setDate}
+                                numberOfMonths={2}
+                                locale={ru}
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <Separator />
                 <div>

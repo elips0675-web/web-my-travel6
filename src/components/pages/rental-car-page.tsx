@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import Image from 'next/image';
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,7 @@ import { RentalCarFilters } from "@/components/rental-car-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type CarRecommendation = AiRentalCarRecommendationsOutput['recommendations'][0];
+type CarRecommendationWithSlug = CarRecommendation & { slug: string };
 
 const formSchema = z.object({
   location: z.string().min(2, { message: "Место получения должно содержать не менее 2 символов." }),
@@ -38,7 +40,21 @@ const formSchema = z.object({
   }),
 });
 
-function CarCard({ car, index }: { car: CarRecommendation, index: number }) {
+const generateSlug = (name: string, index: number) => {
+    const rusToLat: { [key: string]: string } = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh',
+        'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+        'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c',
+        'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    };
+    return name.toLowerCase()
+        .split('').map(char => rusToLat[char] || char).join('')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-') + `-${index}`;
+};
+
+function CarCard({ car, index }: { car: CarRecommendationWithSlug, index: number }) {
     return (
       <Card className="group overflow-hidden">
         <div className="relative overflow-hidden">
@@ -90,7 +106,9 @@ function CarCard({ car, index }: { car: CarRecommendation, index: number }) {
                     <span className="font-bold text-xl">{car.pricePerDay}</span>
                     <span className="text-muted-foreground text-sm"> / день</span>
                 </div>
-                <Button>Забронировать</Button>
+                <Button asChild>
+                    <Link href={`/rental-car/${car.slug}`}>Забронировать</Link>
+                </Button>
             </div>
         </div>
       </Card>
@@ -139,11 +157,22 @@ const mockCarData: AiRentalCarRecommendationsOutput = {
     ],
 };
 
+const mockCarDataWithSlugs = mockCarData.recommendations.map((car, index) => ({
+    ...car,
+    slug: generateSlug(car.name, index)
+}));
+
 export default function RentalCarPageContent() {
-  const [recommendations, setRecommendations] = useState<CarRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<CarRecommendationWithSlug[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem('rentalCarRecommendations', JSON.stringify(mockCarDataWithSlugs));
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -160,7 +189,15 @@ export default function RentalCarPageContent() {
     // TODO: Connect to AI flow
     console.log(values);
     await new Promise(resolve => setTimeout(resolve, 2000));
-    setRecommendations(mockCarData.recommendations);
+    const recommendationsWithSlugs = mockCarData.recommendations.map((rec, index) => ({
+        ...rec,
+        slug: generateSlug(rec.name, index)
+    }));
+
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem('rentalCarRecommendations', JSON.stringify(recommendationsWithSlugs));
+    }
+    setRecommendations(recommendationsWithSlugs);
     
     // toast({
     //   title: "Поиск в разработке",
@@ -169,7 +206,7 @@ export default function RentalCarPageContent() {
     setIsLoading(false);
   }
 
-  const currentCars = hasSearched ? recommendations : mockCarData.recommendations;
+  const currentCars = hasSearched ? recommendations : mockCarDataWithSlugs;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -269,7 +306,7 @@ export default function RentalCarPageContent() {
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные предложения</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-                      {mockCarData.recommendations.map((car, index) => (
+                      {currentCars.map((car, index) => (
                           <CarCard key={index} car={car} index={index} />
                       ))}
                   </div>

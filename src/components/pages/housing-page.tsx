@@ -22,7 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Search, Star, MapPin, Award, CheckCircle } from "lucide-react";
+import { CalendarIcon, Loader2, Search, Star, MapPin, Award, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from 'date-fns/locale';
 import { aiHousingRecommendations, type AiHousingRecommendationsOutput } from '@/ai/flows/ai-housing-recommendations-flow';
@@ -80,19 +80,37 @@ function HousingCard({ recommendation, index }: { recommendation: AiHousingRecom
               {recommendation.location}
           </div>
           <p className="text-sm text-muted-foreground">{recommendation.description}</p>
-          {recommendation.pros && recommendation.pros.length > 0 && (
-            <div>
-                <h4 className="font-semibold text-sm mb-2">Преимущества:</h4>
-                <div className="flex flex-wrap gap-2">
-                    {recommendation.pros.map((pro, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs bg-secondary py-1 px-2 rounded">
-                            <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                            <span>{pro}</span>
-                        </div>
-                    ))}
+          
+          {(recommendation.pros && recommendation.pros.length > 0) || (recommendation.cons && recommendation.cons.length > 0) ? (
+            <div className="border-t pt-4 space-y-4">
+              {recommendation.pros && recommendation.pros.length > 0 && (
+                <div>
+                    <h4 className="font-semibold text-sm mb-2">Преимущества:</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {recommendation.pros.map((pro, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs bg-secondary py-1 px-2 rounded">
+                                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                                <span>{pro}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+              )}
+              {recommendation.cons && recommendation.cons.length > 0 && (
+                <div>
+                    <h4 className="font-semibold text-sm mb-2">Недостатки:</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {recommendation.cons.map((con, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs bg-destructive/10 text-destructive py-1 px-2 rounded">
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>{con}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
         </CardContent>
         <CardFooter className="mt-auto flex items-center justify-between p-4 bg-secondary/30">
             <div>

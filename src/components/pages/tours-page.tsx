@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,6 +36,57 @@ const formSchema = z.object({
   }),
   interests: z.string().min(3, { message: "Опишите ваши интересы."}),
 });
+
+const mockTourData: AiTourRecommendationsOutput = [
+    {
+        name: "Обзорная экскурсия по Риму",
+        description: "Откройте для себя величие Колизея, Римского форума и Пантеона в этой увлекательной пешеходной экскурсии.",
+        type: "культурный",
+        priceRange: "€50",
+        bookingLink: "#",
+        relevanceScore: 95,
+    },
+    {
+        name: "Гастрономический тур по Токио",
+        description: "Попробуйте настоящие суши, рамен и другие японские деликатесы на оживленных улицах Токио.",
+        type: "еда",
+        priceRange: "¥12000",
+        bookingLink: "#",
+        relevanceScore: 92,
+    },
+    {
+        name: "Полет на вертолете над Гранд-Каньоном",
+        description: "Насладитесь захватывающими видами Гранд-Каньона с высоты птичьего полета.",
+        type: "приключение",
+        priceRange: "$250",
+        bookingLink: "#",
+        relevanceScore: 98,
+    },
+    {
+        name: "Винный тур по Тоскане",
+        description: "Посетите знаменитые винодельни региона Кьянти и насладитесь дегустацией лучших итальянских вин.",
+        type: "еда",
+        priceRange: "€90",
+        bookingLink: "#",
+        relevanceScore: 94,
+    },
+     {
+        name: "Дайвинг на Большом Барьерном рифе",
+        description: "Исследуйте подводный мир одного из семи чудес природы.",
+        type: "приключение",
+        priceRange: "$200",
+        bookingLink: "#",
+        relevanceScore: 96,
+    },
+    {
+        name: "Посещение Лувра с гидом",
+        description: "Узнайте истории величайших произведений искусства, включая Мону Лизу и Венеру Милосскую.",
+        type: "культурный",
+        priceRange: "€75",
+        bookingLink: "#",
+        relevanceScore: 93,
+    }
+];
 
 function TourCard({ tour }: { tour: AiTourRecommendationsOutput[0] }) {
   return (
@@ -206,6 +256,14 @@ export default function ToursPageContent() {
         </CardContent>
       </Card>
       
+      {!isLoading && !hasSearched && (
+           <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg max-w-4xl mx-auto">
+              <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-xl font-semibold">Результаты поиска появятся здесь</h3>
+              <p className="text-muted-foreground mt-1 max-w-sm">Заполните форму выше, чтобы найти туры, которые подходят именно вам. Ниже представлены популярные варианты.</p>
+          </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <aside className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
           <TourFilters />
@@ -213,14 +271,19 @@ export default function ToursPageContent() {
 
         <main className="lg:col-span-3">
             {isLoading && <LoadingSkeleton />}
+            
             {!isLoading && !hasSearched && (
-                 <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg h-full">
-                    <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <h3 className="text-xl font-semibold">Результаты поиска появятся здесь</h3>
-                    <p className="text-muted-foreground mt-1 max-w-sm">Заполните форму выше, чтобы найти туры, которые подходят именно вам.</p>
+                 <div>
+                    <h2 className="text-2xl font-headline font-bold mb-6">Популярные туры</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {mockTourData.map((tour, index) => (
+                            <TourCard key={index} tour={tour} />
+                        ))}
+                    </div>
                 </div>
             )}
-            {!isLoading && hasSearched && recommendations && (
+
+            {!isLoading && hasSearched && recommendations && recommendations.length > 0 && (
                 <div>
                 <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} туров</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

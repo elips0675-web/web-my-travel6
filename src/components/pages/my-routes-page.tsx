@@ -4,35 +4,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { ru } from 'date-fns/locale';
 import Image from 'next/image';
-import * as React from 'react';
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { Check, ChevronsUpDown, Search, MapPin, ShieldCheck, Users, Briefcase } from "lucide-react";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from "@/lib/utils";
+import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase } from "lucide-react";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import type { AiTourRecommendationsOutput } from "@/ai/flows/ai-tour-recommendations";
 
 const searchSchema = z.object({
   destination: z.string().min(1, { message: "Обязательное поле" }),
-  categories: z.array(z.string()).refine((value) => value.length > 0, {
-    message: "Выберите хотя бы одну категорию.",
-  }),
+  date: z.date().optional(),
 });
-
-const categories = [
-    { id: "tours", label: "Туры" },
-    { id: "housing", label: "Жилье" },
-    { id: "restaurants", label: "Кафе и рестораны" },
-    { id: "activities", label: "Развлечения" },
-    { id: "rental-car", label: "Авто" },
-];
 
 export default function MyRoutesPageContent() {
     const router = useRouter();
@@ -41,18 +33,78 @@ export default function MyRoutesPageContent() {
 
     const form = useForm<z.infer<typeof searchSchema>>({
         resolver: zodResolver(searchSchema),
-        defaultValues: { 
-            destination: "",
-            categories: [],
-        },
+        defaultValues: { destination: "" },
     });
 
     function onSubmit(values: z.infer<typeof searchSchema>) {
         const params = new URLSearchParams();
         params.append("destination", values.destination);
-        values.categories.forEach(category => params.append("category", category));
-        router.push(`/routes/new?${params.toString()}`);
+        if (values.date) params.append("from", values.date.toISOString());
+        router.push(`/tours?${params.toString()}`);
     }
+
+    const tours: (AiTourRecommendationsOutput[0] & { location: string })[] = [
+        {
+            name: "Обзорная экскурсия по Риму",
+            description: "Откройте для себя величие Колизея, Римского форума и Пантеона в этой увлекательной пешеходной экскурсии.",
+            type: "культурный",
+            location: "Рим, Италия",
+            priceRange: "€50",
+            bookingLink: "#",
+            relevanceScore: 95,
+            duration: "4 часа",
+            groupSize: "до 15 чел.",
+            highlights: ["Колизей", "Римский форум", "Пантеон"],
+            included: ["Гид", "Наушники"],
+            excluded: ["Входные билеты", "Еда и напитки"],
+            galleryImageUrls: ["https://picsum.photos/seed/rome-tour-1/800/600"]
+        },
+        {
+            name: "Гастрономический тур по Токио",
+            description: "Попробуйте настоящие суши, рамен и другие японские деликатесы на оживленных улицах Токио.",
+            type: "еда",
+            location: "Токио, Япония",
+            priceRange: "¥12000",
+            bookingLink: "#",
+            relevanceScore: 92,
+            duration: "3 часа",
+            groupSize: "до 8 чел.",
+            highlights: ["Рынок Цукидзи", "Дегустация саке", "Мастер-класс по суши"],
+            included: ["Гид", "Дегустации"],
+            excluded: ["Обед", "Транспорт"],
+            galleryImageUrls: ["https://picsum.photos/seed/tokyo-tour-1/800/600"]
+        },
+        {
+            name: "Полет на вертолете над Гранд-Каньоном",
+            description: "Насладитесь захватывающими видами Гранд-Каньона с высоты птичьего полета.",
+            type: "приключение",
+            location: "Аризона, США",
+            priceRange: "$250",
+            bookingLink: "#",
+            relevanceScore: 98,
+            duration: "1 час",
+            groupSize: "до 6 чел.",
+            highlights: ["Вид на плотину Гувера", "Полет над каньоном", "Фото-остановки"],
+            included: ["Полет", "Трансфер из отеля"],
+            excluded: ["Сборы национального парка"],
+            galleryImageUrls: ["https://picsum.photos/seed/canyon-tour-1/800/600"]
+        },
+        {
+            name: "Винный тур по Тоскане",
+            description: "Посетите знаменитые винодельни региона Кьянти и насладитесь дегустацией лучших итальянских вин.",
+            type: "еда",
+            location: "Тоскана, Италия",
+            priceRange: "€90",
+            bookingLink: "#",
+            relevanceScore: 94,
+            duration: "Полный день",
+            groupSize: "до 25 чел.",
+            highlights: ["Дегустация вина Кьянти", "Посещение 2 виноделен", "Обед на ферме"],
+            included: ["Транспорт", "Дегустации", "Обед"],
+            excluded: ["Личные расходы"],
+            galleryImageUrls: ["https://picsum.photos/seed/tuscany-tour-1/800/600"]
+        }
+    ];
     
     const destinations = [
         { name: "Париж", image: PlaceHolderImages.find(img => img.id === 'destination-paris') },
@@ -93,12 +145,12 @@ export default function MyRoutesPageContent() {
                     
                     <div className="mt-8 w-full max-w-3xl p-4 bg-background/50 backdrop-blur-md rounded-lg">
                          <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-4 md:items-center gap-4">
                                 <FormField
                                     control={form.control}
                                     name="destination"
                                     render={({ field }) => (
-                                        <FormItem className="md:col-span-3 text-left">
+                                        <FormItem className="md:col-span-2 text-left">
                                             <FormControl>
                                                 <div className="relative">
                                                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -111,64 +163,26 @@ export default function MyRoutesPageContent() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="categories"
+                                    name="date"
                                     render={({ field }) => (
-                                    <FormItem className="md:col-span-1 text-left flex flex-col justify-end">
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                        variant="outline"
-                                                        role="combobox"
-                                                        className={cn("h-14 text-base bg-input border-0 justify-between", !field.value?.length && "text-muted-foreground")}
+                                        <FormItem className="text-left">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn("w-full justify-start text-left font-normal h-14 text-base bg-input border-0", !field.value && "text-muted-foreground")}
                                                         >
-                                                        <div className="flex gap-1 flex-wrap">
-                                                        {field.value?.length > 0 ? (
-                                                            field.value.length > 2 ? (
-                                                                <Badge variant="secondary">{`${field.value.length} выбрано`}</Badge>
-                                                            ) : (
-                                                                categories
-                                                                .filter((cat) => field.value.includes(cat.id))
-                                                                .map((cat) => <Badge key={cat.id} variant="secondary">{cat.label}</Badge>)
-                                                            )
-                                                        ) : "Категории"}
-                                                        </div>
-                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                                                <div className="p-2 space-y-1">
-                                                {categories.map((category) => (
-                                                    <Button
-                                                        key={category.id}
-                                                        variant="ghost"
-                                                        className="w-full justify-start"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            const selected = field.value || [];
-                                                            const isSelected = selected.includes(category.id);
-                                                            if (isSelected) {
-                                                                field.onChange(selected.filter(id => id !== category.id));
-                                                            } else {
-                                                                field.onChange([...selected, category.id]);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <div className={cn(
-                                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                            field.value?.includes(category.id) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
-                                                        )}>
-                                                            <Check className={cn("h-4 w-4")} />
-                                                        </div>
-                                                        {category.label}
-                                                    </Button>
-                                                ))}
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                    </FormItem>
+                                                            <CalendarIcon className="mr-2 h-5 w-5" />
+                                                            {field.value ? format(field.value, "d LLL, y", { locale: ru }) : <span>Выберите дату</span>}
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar initialFocus mode="single" selected={field.value} onSelect={field.onChange} locale={ru} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </FormItem>
                                     )}
                                 />
                                 <Button type="submit" className="h-14 text-base font-bold md:col-span-1">
@@ -181,6 +195,73 @@ export default function MyRoutesPageContent() {
                 </div>
             </section>
             
+            <section className="py-16 lg:py-24">
+                <div className="container mx-auto px-4">
+                    <Tabs defaultValue="tours" className="w-full">
+                        <div className="flex justify-center mb-12">
+                            <TabsList>
+                                <TabsTrigger value="tours">Туры</TabsTrigger>
+                                <TabsTrigger value="housing">Жилье</TabsTrigger>
+                                <TabsTrigger value="restaurants">Кафе и рестораны</TabsTrigger>
+                                <TabsTrigger value="activities">Развлечения</TabsTrigger>
+                                <TabsTrigger value="rental-car">Авто</TabsTrigger>
+                            </TabsList>
+                        </div>
+                        <TabsContent value="tours">
+                            <div className="text-center max-w-2xl mx-auto mb-12">
+                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Наши лучшие туры</h2>
+                                <p className="text-lg text-muted-foreground">Исследуйте мир с нашими самыми популярными и высоко оцененными турами.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                {tours.map((tour, index) => (
+                                    <div key={index} className="group flex flex-col">
+                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                            <Image
+                                                src={tour.galleryImageUrls[0]}
+                                                alt={tour.name}
+                                                width={600}
+                                                height={400}
+                                                className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                                                data-ai-hint={tour.type}
+                                            />
+                                            <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
+                                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 flex flex-col flex-grow">
+                                            <div className="flex items-center text-sm text-muted-foreground mb-2">
+                                                <MapPin className="w-4 h-4 mr-1.5" />
+                                                {tour.location}
+                                            </div>
+                                            <h3 className="font-bold font-headline text-xl mb-3 text-foreground flex-grow group-hover:text-primary transition-colors">{tour.name}</h3>
+                                            <div className="flex justify-between items-center mt-auto">
+                                                <p className="text-lg font-bold text-foreground">
+                                                    {tour.priceRange}
+                                                </p>
+                                                <div className="text-sm text-muted-foreground">{tour.duration}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="housing">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по жилью.</div>
+                        </TabsContent>
+                        <TabsContent value="restaurants">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по кафе и ресторанам.</div>
+                        </TabsContent>
+                        <TabsContent value="activities">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по развлечениям.</div>
+                        </TabsContent>
+                        <TabsContent value="rental-car">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по аренде авто.</div>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </section>
+
              <section className="py-16 lg:py-24 bg-secondary">
                 <div className="container mx-auto px-4">
                     <div className="grid md:grid-cols-2 gap-12 items-center">

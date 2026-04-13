@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,14 @@ import { aiHousingRecommendations, type AiHousingRecommendationsOutput } from '@
 import { Textarea } from "@/components/ui/textarea";
 import { HousingFilters } from "@/components/housing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type RecommendationWithSlug = AiHousingRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -44,84 +53,90 @@ const formSchema = z.object({
 
 function HousingCard({ recommendation, index }: { recommendation: RecommendationWithSlug, index: number }) {
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-      <div className="relative">
+    <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col rounded-2xl">
+      <div className="relative h-48 overflow-hidden">
         <Image
           src={recommendation.imageUrl || `https://picsum.photos/seed/housing${index}/800/600`}
           alt={recommendation.name}
-          width={800}
-          height={600}
-          className="object-cover h-full w-full aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
           data-ai-hint={`${recommendation.type.toLowerCase()} interior`}
         />
+        <div className="absolute top-3 right-3 bg-card/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
+            {recommendation.rating && (
+                <>
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span className="font-semibold text-card-foreground">{recommendation.rating.toFixed(1)}</span>
+                </>
+            )}
+        </div>
         {recommendation.rating && recommendation.rating >= 4.8 && (
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded-full">
                 <Award className="w-4 h-4" />
                 <span>Лучший выбор</span>
             </div>
         )}
       </div>
-      <div className='p-4 flex-grow flex flex-col'>
-        <div className="flex justify-between items-start">
-            <div>
-                <CardDescription>{recommendation.type}</CardDescription>
-                <CardTitle className="font-headline text-xl group-hover:text-primary transition-colors">{recommendation.name}</CardTitle>
-            </div>
-            {recommendation.rating && (
-                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>{recommendation.rating.toFixed(1)}</span>
-                </div>
-            )}
-        </div>
-        <div className="flex items-center text-sm text-muted-foreground my-2">
+      <CardHeader>
+        <CardDescription>{recommendation.type}</CardDescription>
+        <CardTitle className="font-bold text-lg mb-0 group-hover:text-primary transition-colors">{recommendation.name}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-grow">
+        <div className="flex items-center text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 mr-1.5" />
             {recommendation.location}
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{recommendation.description}</p>
-        <div className="mt-auto flex items-center justify-between pt-4">
-            <div>
-                <span className="text-muted-foreground text-sm">От </span>
-                <span className="font-bold text-xl">{recommendation.priceEstimate}</span>
-                <span className="text-muted-foreground text-sm"> / ночь</span>
-            </div>
-            <Button asChild>
-                <Link href={`/housing/${recommendation.slug}`}>Посмотреть</Link>
-            </Button>
+        <p className="text-sm text-muted-foreground mb-3 flex-grow line-clamp-2">{recommendation.description}</p>
+        <div className="flex flex-wrap gap-2">
+            {recommendation.pros?.slice(0, 2).map((pro, i) => (
+                <span key={i} className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
+                    {pro}
+                </span>
+            ))}
         </div>
-      </div>
+      </CardContent>
+      <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
+        <div>
+          <span className="text-2xl font-bold text-primary">{recommendation.priceEstimate}</span>
+          <span className="text-muted-foreground text-sm">/ночь</span>
+        </div>
+        <Button asChild>
+          <Link href={`/housing/${recommendation.slug}`}>Подробнее</Link>
+        </Button>
+      </CardFooter>
     </Card>
   )
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <Card key={i} className="overflow-hidden flex flex-col">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {Array.from({ length: 12 }).map((i) => (
+        <Card key={i} className="overflow-hidden flex flex-col rounded-2xl">
             <Skeleton className="h-48 w-full" />
-            <div className="p-4 flex-grow flex flex-col">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <Skeleton className="h-4 w-20 mb-2" />
-                        <Skeleton className="h-6 w-48" />
-                    </div>
-                    <Skeleton className="h-8 w-16" />
+            <CardHeader>
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-6 w-3/4" />
+            </CardHeader>
+            <CardContent className="flex flex-col flex-grow gap-4">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full" />
+                <div className="flex gap-2">
+                    <Skeleton className="h-5 w-1/4" />
+                    <Skeleton className="h-5 w-1/4" />
                 </div>
-                <Skeleton className="h-4 w-32 my-2" />
-                <Skeleton className="h-12 w-full flex-grow" />
-                <div className="mt-auto flex items-center justify-between pt-4">
-                    <Skeleton className="h-8 w-24" />
-                    <Skeleton className="h-10 w-28" />
-                </div>
-            </div>
+            </CardContent>
+            <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+            </CardFooter>
         </Card>
       ))}
     </div>
   )
 }
 
-const mockHousingData: AiHousingRecommendationsOutput = {
+const baseMockHousingData: AiHousingRecommendationsOutput = {
     recommendations: [
       {
         name: "Гранд-отель «Европа»",
@@ -168,7 +183,15 @@ const mockHousingData: AiHousingRecommendationsOutput = {
         imageUrl: "https://picsum.photos/seed/rosakhutor/800/600",
       }
     ],
-  };
+};
+
+const mockHousingData: AiHousingRecommendationsOutput = {
+    recommendations: Array.from({ length: 6 }).flatMap(() => baseMockHousingData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} Вариант ${Math.floor(index/baseMockHousingData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
+};
 
 const generateSlug = (name: string, index: number) => {
     const rusToLat: { [key: string]: string } = {
@@ -189,6 +212,8 @@ export default function HousingPageContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     const mockRecsWithSlugs = mockHousingData.recommendations.map((rec, index) => ({
@@ -213,6 +238,7 @@ export default function HousingPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setDisplayedRecommendations([]);
+    setCurrentPage(1);
     try {
       const result = await aiHousingRecommendations({
         destination: values.destination,
@@ -244,6 +270,15 @@ export default function HousingPageContent() {
   }
 
   const currentRecommendations = hasSearched ? displayedRecommendations : mockHousingData.recommendations.map((rec, index) => ({...rec, slug: generateSlug(rec.name, index)}));
+
+  const totalPages = Math.ceil(currentRecommendations.length / itemsPerPage);
+  const paginatedRecommendations = currentRecommendations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -338,9 +373,9 @@ export default function HousingPageContent() {
           {!isLoading && hasSearched && (
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">Найдено {displayedRecommendations.length} вариантов</h2>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedRecommendations.map((rec, index) => (
-                  <HousingCard key={rec.slug} recommendation={rec} index={index} />
+               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {paginatedRecommendations.map((rec, index) => (
+                  <HousingCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                 ))}
               </div>
             </div>
@@ -349,13 +384,43 @@ export default function HousingPageContent() {
           {!isLoading && !hasSearched && (
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные предложения</h2>
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {displayedRecommendations.map((rec, index) => (
-                        <HousingCard key={rec.slug} recommendation={rec} index={index} />
+                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {paginatedRecommendations.map((rec, index) => (
+                        <HousingCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                     ))}
                   </div>
               </div>
           )}
+           {!isLoading && currentRecommendations.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
     </div>

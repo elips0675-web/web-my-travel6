@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +27,14 @@ import { aiRestaurantRecommendations, type AiRestaurantRecommendationsOutput } f
 import { Textarea } from "@/components/ui/textarea";
 import { RestaurantFilters } from "@/components/restaurant-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type RecommendationWithSlug = AiRestaurantRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -51,38 +60,42 @@ const generateSlug = (name: string, index: number) => {
 
 function RestaurantCard({ recommendation, index }: { recommendation: RecommendationWithSlug, index: number }) {
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-      <div className="relative aspect-video">
+    <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col rounded-2xl">
+      <div className="relative h-48 overflow-hidden">
         <Image
           src={recommendation.imageUrl || `https://picsum.photos/seed/restaurant${index}/800/600`}
           alt={recommendation.name}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
           data-ai-hint={`${recommendation.cuisine.toLowerCase()} food`}
         />
-      </div>
-      <div className="p-4 flex-grow">
-        <div className="flex justify-between items-start mb-2">
-            <div>
-                <CardDescription>{recommendation.cuisine} • {recommendation.priceRange}</CardDescription>
-                <CardTitle className="font-headline text-xl group-hover:text-primary transition-colors">{recommendation.name}</CardTitle>
+        {recommendation.rating && (
+            <div className="absolute top-3 right-3 bg-card/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span className="font-semibold text-card-foreground">{recommendation.rating.toFixed(1)}</span>
             </div>
-            {recommendation.rating && (
-                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>{recommendation.rating.toFixed(1)}</span>
-                </div>
-            )}
-        </div>
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{recommendation.description}</p>
-        <div className="text-sm text-muted-foreground flex items-center">
+        )}
+      </div>
+      <CardHeader>
+        <CardDescription>{recommendation.cuisine}</CardDescription>
+        <CardTitle className="font-bold text-lg mb-0 group-hover:text-primary transition-colors">{recommendation.name}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-grow">
+        <div className="flex items-center text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 mr-1.5" />
             {recommendation.location}
         </div>
-      </div>
-       <CardFooter className="bg-secondary/30 p-4 flex justify-end mt-auto">
+        <p className="text-sm text-muted-foreground mb-3 flex-grow line-clamp-2">{recommendation.description}</p>
+        {recommendation.specialty && (
+            <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs w-fit">
+                {recommendation.specialty}
+            </span>
+        )}
+      </CardContent>
+       <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
+            <div className="text-2xl font-bold text-primary">{recommendation.price}</div>
             <Button asChild>
-                <Link href={`/restaurants/${recommendation.slug}`}>Забронировать</Link>
+                <Link href={`/restaurants/${recommendation.slug}`}>Подробнее</Link>
             </Button>
       </CardFooter>
     </Card>
@@ -92,36 +105,45 @@ function RestaurantCard({ recommendation, index }: { recommendation: Recommendat
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <Card key={i} className="overflow-hidden flex flex-col">
+      {Array.from({ length: 12 }).map((i) => (
+        <Card key={i} className="overflow-hidden flex flex-col rounded-2xl">
             <Skeleton className="h-48 w-full" />
-            <div className="p-4 space-y-3 flex-grow">
-                <div className="flex justify-between">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-6 w-1/4" />
-                </div>
+            <CardHeader>
+                <Skeleton className="h-4 w-1/3" />
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-10 w-full" />
+            </CardHeader>
+            <CardContent className="flex flex-col flex-grow gap-4">
                 <Skeleton className="h-4 w-1/2" />
-            </div>
-             <CardFooter className="bg-secondary/30 p-4 flex justify-end mt-auto">
-                <Skeleton className="h-10 w-28" />
-             </CardFooter>
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-5 w-1/3" />
+            </CardContent>
+            <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-10 w-1/3" />
+            </CardFooter>
         </Card>
       ))}
     </div>
   )
 }
 
-const mockRestaurantData: AiRestaurantRecommendationsOutput = {
+const baseMockRestaurantData: AiRestaurantRecommendationsOutput = {
     recommendations: [
-      { name: "White Rabbit", cuisine: "Современная русская", location: "Смоленская пл., 3, Москва", description: "Панорамный ресторан с видом на Москву, известный своей инновационной русской кухней.", priceRange: "₽₽₽₽", rating: 4.8, specialty: "Борщ с жареными карасями", imageUrl: "https://picsum.photos/seed/whiterabbit/800/600" },
-      { name: "Probka на Цветном", cuisine: "Итальянская", location: "Цветной б-р, 2, Москва", description: "Уютный итальянский ресторан от Арама Мнацаканова с аутентичной кухней и отличной винной картой.", priceRange: "₽₽₽", rating: 4.7, specialty: "Пицца с трюфелем", imageUrl: "https://picsum.photos/seed/probka/800/600" },
-      { name: "Кафе Пушкинъ", cuisine: "Русская дворянская", location: "Тверской б-р, 26А, Москва", description: "Легендарный ресторан-аптека с атмосферой XIX века и классической русской кухней.", priceRange: "₽₽₽₽", rating: 4.6, specialty: "Пожарская котлета", imageUrl: "https://picsum.photos/seed/pushkin/800/600" },
-      { name: "Горыныч", cuisine: "Гриль", location: "Рождественский б-р, 1, Москва", description: "Ресторан с огромными печами, где готовят блюда на огне. Отличные завтраки и хлеб из собственной пекарни.", priceRange: "₽₽₽", rating: 4.7, specialty: "Стейки и неаполитанская пицца", imageUrl: "https://picsum.photos/seed/gorynych/800/600" },
-      { name: "Sehnsucht", cuisine: "Европейская", location: "Казанская ул., 3А, Санкт-Петербург", description: "Стильный ресторан с авторской кухней и коктейлями в самом центре Петербурга.", priceRange: "₽₽₽", rating: 4.8, specialty: "Тартар из говядины", imageUrl: "https://picsum.photos/seed/sehnsucht/800/600" },
-      { name: "Harvest", cuisine: "Овощная", location: "пр. Добролюбова, 11, Санкт-Петербург", description: "Инновационный ресторан, где овощи играют главную роль. Входит в The World's 50 Best Restaurants.", priceRange: "₽₽₽₽", rating: 4.9, specialty: "Капуста с черной икрой", imageUrl: "https://picsum.photos/seed/harvest/800/600" },
+      { name: "White Rabbit", cuisine: "Современная русская", location: "Смоленская пл., 3, Москва", description: "Панорамный ресторан с видом на Москву, известный своей инновационной русской кухней.", price: "от 250 BYN", rating: 4.8, specialty: "Борщ с жареными карасями", imageUrl: "https://picsum.photos/seed/whiterabbit/800/600" },
+      { name: "Probka на Цветном", cuisine: "Итальянская", location: "Цветной б-р, 2, Москва", description: "Уютный итальянский ресторан от Арама Мнацаканова с аутентичной кухней и отличной винной картой.", price: "от 150 BYN", rating: 4.7, specialty: "Пицца с трюфелем", imageUrl: "https://picsum.photos/seed/probka/800/600" },
+      { name: "Кафе Пушкинъ", cuisine: "Русская дворянская", location: "Тверской б-р, 26А, Москва", description: "Легендарный ресторан-аптека с атмосферой XIX века и классической русской кухней.", price: "от 200 BYN", rating: 4.6, specialty: "Пожарская котлета", imageUrl: "https://picsum.photos/seed/pushkin/800/600" },
+      { name: "Горыныч", cuisine: "Гриль", location: "Рождественский б-р, 1, Москва", description: "Ресторан с огромными печами, где готовят блюда на огне. Отличные завтраки и хлеб из собственной пекарни.", price: "от 120 BYN", rating: 4.7, specialty: "Стейки и неаполитанская пицца", imageUrl: "https://picsum.photos/seed/gorynych/800/600" },
+      { name: "Sehnsucht", cuisine: "Европейская", location: "Казанская ул., 3А, Санкт-Петербург", description: "Стильный ресторан с авторской кухней и коктейлями в самом центре Петербурга.", price: "от 100 BYN", rating: 4.8, specialty: "Тартар из говядины", imageUrl: "https://picsum.photos/seed/sehnsucht/800/600" },
+      { name: "Harvest", cuisine: "Овощная", location: "пр. Добролюбова, 11, Санкт-Петербург", description: "Инновационный ресторан, где овощи играют главную роль. Входит в The World's 50 Best Restaurants.", price: "от 220 BYN", rating: 4.9, specialty: "Капуста с черной икрой", imageUrl: "https://picsum.photos/seed/harvest/800/600" },
     ],
+};
+
+const mockRestaurantData: AiRestaurantRecommendationsOutput = {
+    recommendations: Array.from({ length: 4 }).flatMap(() => baseMockRestaurantData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} ${Math.floor(index/baseMockRestaurantData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
 };
 
 const mockRestaurantDataWithSlugs = mockRestaurantData.recommendations.map((rec, index) => ({
@@ -134,6 +156,8 @@ export default function RestaurantsPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -153,6 +177,7 @@ export default function RestaurantsPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
 
     try {
         const result = await aiRestaurantRecommendations({
@@ -182,6 +207,16 @@ export default function RestaurantsPageContent() {
   }
 
   const currentRestaurants = hasSearched ? recommendations : mockRestaurantDataWithSlugs;
+  
+  const totalPages = Math.ceil(currentRestaurants.length / itemsPerPage);
+  const paginatedRestaurants = currentRestaurants.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -248,8 +283,8 @@ export default function RestaurantsPageContent() {
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} вариантов</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendations.map((rec, index) => (
-                  <RestaurantCard key={rec.slug} recommendation={rec} index={index} />
+                {paginatedRestaurants.map((rec, index) => (
+                  <RestaurantCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                 ))}
               </div>
             </div>
@@ -266,12 +301,43 @@ export default function RestaurantsPageContent() {
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные рестораны</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {currentRestaurants.map((rec, index) => (
-                          <RestaurantCard key={rec.slug} recommendation={rec} index={index} />
+                      {paginatedRestaurants.map((rec, index) => (
+                          <RestaurantCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                       ))}
                   </div>
               </div>
           )}
+
+           {!isLoading && currentRestaurants.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import { type Route, type Place } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

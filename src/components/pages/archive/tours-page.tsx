@@ -1,9 +1,11 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState } from "react";
+import Image from 'next/image';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +22,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Search, Star } from "lucide-react";
+import { CalendarIcon, Loader2, Search, Star, Clock, Users } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from 'date-fns/locale';
 import { aiTourRecommendations, type AiTourRecommendationsOutput } from '@/ai/flows/ai-tour-recommendations';
 import Link from "next/link";
 import { TourFilters } from "@/components/tour-filters";
 import { Skeleton } from "../ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type TourRecommendationWithSlug = AiTourRecommendationsOutput[0] & { slug: string };
 
@@ -54,7 +64,7 @@ const generateSlug = (name: string, index: number) => {
 };
 
 
-const mockTourData: AiTourRecommendationsOutput = [
+const baseMockTourData: AiTourRecommendationsOutput = [
     {
         name: "Замки Мира и Несвижа",
         description: "Посетите два самых известных замка Беларуси, внесенных в список Всемирного наследия ЮНЕСКО. Погрузитесь в атмосферу средневековья и магнатской роскоши.",
@@ -170,56 +180,86 @@ const mockTourData: AiTourRecommendationsOutput = [
         ]
     }
 ];
+
+const mockTourData: AiTourRecommendationsOutput = Array.from({ length: 4 }).flatMap(() => baseMockTourData).map((tour, index) => ({
+    ...tour,
+    name: `${tour.name} Вариант ${Math.floor(index/baseMockTourData.length) + 1}`,
+    galleryImageUrls: tour.galleryImageUrls.map(url => url.replace('/seed/', `/seed/${index}-`))
+}));
+
 const mockToursWithSlugs: TourRecommendationWithSlug[] = mockTourData.map((tour, index) => ({
     ...tour,
     slug: generateSlug(tour.name, index),
 }));
 
-function TourCard({ tour }: { tour: TourRecommendationWithSlug }) {
-  return (
-    <Card className="flex flex-col group transition-shadow hover:shadow-xl">
-        <CardHeader>
-            <div className="flex justify-between items-start gap-4">
-                <CardTitle className="font-headline text-xl group-hover:text-primary transition-colors">{tour.name}</CardTitle>
-                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>{ (tour.relevanceScore / 20).toFixed(1) }</span>
+function TourCard({ tour, index }: { tour: TourRecommendationWithSlug, index: number }) {
+    const rating = tour.relevanceScore / 20;
+    return (
+        <Card className="group overflow-hidden transition-shadow hover:shadow-xl flex flex-col rounded-2xl">
+            <div className="relative h-48 overflow-hidden">
+                <Image
+                    src={tour.galleryImageUrls[0] || `https://picsum.photos/seed/tour${index}/800/600`}
+                    alt={tour.name}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    data-ai-hint={tour.type}
+                />
+                <div className="absolute top-3 right-3 bg-card/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span className="font-semibold text-card-foreground">{rating.toFixed(1)}</span>
                 </div>
             </div>
-            <CardDescription className="capitalize">{tour.type}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-grow">
-            <p className="text-sm text-muted-foreground line-clamp-3">{tour.description}</p>
-        </CardContent>
-        <CardFooter className="flex justify-between items-center bg-secondary/30 mt-auto pt-4">
-            <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">Цена от</span>
-                <span className="font-bold text-lg">{tour.priceRange}</span>
-            </div>
-            <Button asChild>
-                <Link href={`/tours/${tour.slug}`}>Подробнее</Link>
-            </Button>
-        </CardFooter>
-    </Card>
-  )
+            <CardHeader>
+                <CardDescription>{tour.type}</CardDescription>
+                <CardTitle className="font-bold text-lg mb-0 group-hover:text-primary transition-colors">{tour.name}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col flex-grow">
+                <p className="text-sm text-muted-foreground mb-3 flex-grow line-clamp-2">{tour.description}</p>
+                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" />
+                        <span>{tour.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Users className="w-4 h-4" />
+                        <span>{tour.groupSize}</span>
+                    </div>
+                </div>
+            </CardContent>
+            <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
+                <div>
+                    <span className="text-2xl font-bold text-primary">{tour.priceRange}</span>
+                    <span className="text-muted-foreground text-sm"> / чел.</span>
+                </div>
+                <Button asChild>
+                    <Link href={`/tours/${tour.slug}`}>Подробнее</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+    );
 }
 
 
 function LoadingSkeleton() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="flex flex-col">
+            {Array.from({ length: 12 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden flex flex-col rounded-2xl">
+                    <Skeleton className="h-48 w-full" />
                     <CardHeader>
-                        <Skeleton className="h-6 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-6 w-3/4" />
                     </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-12 w-full" />
+                    <CardContent className="flex flex-col flex-grow gap-4">
+                        <Skeleton className="h-10 w-full" />
+                        <div className="flex gap-4">
+                            <Skeleton className="h-5 w-1/2" />
+                            <Skeleton className="h-5 w-1/2" />
+                        </div>
                     </CardContent>
-                    <CardFooter className="flex justify-between items-center bg-secondary/30 mt-auto pt-4">
+                    <CardFooter className="flex items-center justify-between pt-3 border-t mt-auto">
                         <Skeleton className="h-8 w-1/3" />
-                        <Skeleton className="h-10 w-1/4" />
+                        <Skeleton className="h-10 w-1/3" />
                     </CardFooter>
                 </Card>
             ))}
@@ -233,6 +273,8 @@ export default function ToursPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -246,6 +288,7 @@ export default function ToursPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
     try {
       const result = await aiTourRecommendations({
         destination: values.destination,
@@ -280,6 +323,15 @@ export default function ToursPageContent() {
   if(typeof window !== 'undefined' && !hasSearched) {
       sessionStorage.setItem('tourRecommendations', JSON.stringify(mockToursWithSlugs));
   }
+
+  const totalPages = Math.ceil(currentTours.length / itemsPerPage);
+  const paginatedTours = currentTours.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
 
   return (
@@ -346,12 +398,10 @@ export default function ToursPageContent() {
                     )}
                 />
               </div>
-               <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                    Найти туры
-                </Button>
-               </div>
+               <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
+                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                   Найти туры
+               </Button>
             </form>
           </Form>
         </CardContent>
@@ -377,8 +427,8 @@ export default function ToursPageContent() {
                  <div>
                     <h2 className="text-2xl font-headline font-bold mb-6">Популярные туры</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {mockToursWithSlugs.map((tour, index) => (
-                            <TourCard key={index} tour={tour} />
+                        {paginatedTours.map((tour, index) => (
+                            <TourCard key={index} tour={tour} index={index} />
                         ))}
                     </div>
                 </div>
@@ -388,8 +438,8 @@ export default function ToursPageContent() {
                 <div>
                 <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} туров</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {recommendations.map((tour, index) => (
-                    <TourCard key={index} tour={tour} />
+                    {paginatedTours.map((tour, index) => (
+                    <TourCard key={index} tour={tour} index={index} />
                     ))}
                 </div>
                 </div>
@@ -399,6 +449,37 @@ export default function ToursPageContent() {
                     <h3 className="text-xl font-semibold">Ничего не найдено</h3>
                     <p className="text-muted-foreground mt-1 max-w-sm">Попробуйте изменить параметры поиска.</p>
                 </div>
+            )}
+
+            {!isLoading && currentTours.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
             )}
         </main>
       </div>

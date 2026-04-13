@@ -313,6 +313,14 @@ export default function HousingPageContent() {
         </CardContent>
       </Card>
       
+      {!isLoading && !recommendations && (
+          <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg max-w-4xl mx-auto mb-8">
+              <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-xl font-semibold">Результаты появятся здесь</h3>
+              <p className="text-muted-foreground mt-1">Заполните форму выше, чтобы найти жилье вашей мечты. Ниже представлены популярные варианты.</p>
+          </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <aside className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
           <HousingFilters />
@@ -331,19 +339,11 @@ export default function HousingPageContent() {
           )}
 
           {!isLoading && !recommendations && (
-              <div className="space-y-8">
-                  <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
-                      <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                      <h3 className="text-xl font-semibold">Результаты появятся здесь</h3>
-                      <p className="text-muted-foreground mt-1">Заполните форму выше, чтобы найти жилье вашей мечты, или выберите из популярных вариантов ниже.</p>
-                  </div>
-                  
-                  <div className="space-y-6">
-                      <h2 className="text-2xl font-headline font-bold">Популярные предложения</h2>
-                      {mockHousingData.recommendations.map((rec, index) => (
-                          <HousingCard key={index} recommendation={rec} index={index} />
-                      ))}
-                  </div>
+              <div className="space-y-6">
+                  <h2 className="text-2xl font-headline font-bold">Популярные предложения</h2>
+                  {mockHousingData.recommendations.map((rec, index) => (
+                      <HousingCard key={index} recommendation={rec} index={index} />
+                  ))}
               </div>
           )}
         </main>

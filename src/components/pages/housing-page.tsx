@@ -30,6 +30,14 @@ import { aiHousingRecommendations, type AiHousingRecommendationsOutput } from '@
 import { Textarea } from "@/components/ui/textarea";
 import { HousingFilters } from "@/components/housing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type RecommendationWithSlug = AiHousingRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -99,7 +107,7 @@ function HousingCard({ recommendation, index }: { recommendation: Recommendation
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {[1, 2, 3, 4].map((i) => (
+      {Array.from({ length: 12 }).map((i) => (
         <Card key={i} className="overflow-hidden flex flex-col">
             <Skeleton className="h-48 w-full" />
             <CardHeader>
@@ -125,7 +133,7 @@ function LoadingSkeleton() {
   )
 }
 
-const mockHousingData: AiHousingRecommendationsOutput = {
+const baseMockHousingData: AiHousingRecommendationsOutput = {
     recommendations: [
       {
         name: "Гранд-отель «Европа»",
@@ -172,7 +180,15 @@ const mockHousingData: AiHousingRecommendationsOutput = {
         imageUrl: "https://picsum.photos/seed/rosakhutor/800/600",
       }
     ],
-  };
+};
+
+const mockHousingData: AiHousingRecommendationsOutput = {
+    recommendations: Array.from({ length: 6 }).flatMap(() => baseMockHousingData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} Вариант ${Math.floor(index/baseMockHousingData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
+};
 
 const generateSlug = (name: string, index: number) => {
     const rusToLat: { [key: string]: string } = {
@@ -193,6 +209,8 @@ export default function HousingPageContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     const mockRecsWithSlugs = mockHousingData.recommendations.map((rec, index) => ({
@@ -217,6 +235,7 @@ export default function HousingPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setDisplayedRecommendations([]);
+    setCurrentPage(1);
     try {
       const result = await aiHousingRecommendations({
         destination: values.destination,
@@ -248,6 +267,15 @@ export default function HousingPageContent() {
   }
 
   const currentRecommendations = hasSearched ? displayedRecommendations : mockHousingData.recommendations.map((rec, index) => ({...rec, slug: generateSlug(rec.name, index)}));
+
+  const totalPages = Math.ceil(currentRecommendations.length / itemsPerPage);
+  const paginatedRecommendations = currentRecommendations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -343,8 +371,8 @@ export default function HousingPageContent() {
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">Найдено {displayedRecommendations.length} вариантов</h2>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {displayedRecommendations.map((rec, index) => (
-                  <HousingCard key={rec.slug} recommendation={rec} index={index} />
+                {paginatedRecommendations.map((rec, index) => (
+                  <HousingCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                 ))}
               </div>
             </div>
@@ -354,12 +382,42 @@ export default function HousingPageContent() {
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные предложения</h2>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {displayedRecommendations.map((rec, index) => (
-                        <HousingCard key={rec.slug} recommendation={rec} index={index} />
+                    {paginatedRecommendations.map((rec, index) => (
+                        <HousingCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                     ))}
                   </div>
               </div>
           )}
+           {!isLoading && currentRecommendations.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
     </div>

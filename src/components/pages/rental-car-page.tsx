@@ -28,6 +28,14 @@ import { ru } from 'date-fns/locale';
 import { type AiRentalCarRecommendationsOutput } from '@/ai/flows/ai-rental-car-recommendations';
 import { RentalCarFilters } from "@/components/rental-car-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type CarRecommendation = AiRentalCarRecommendationsOutput['recommendations'][0];
 type CarRecommendationWithSlug = CarRecommendation & { slug: string };
@@ -118,7 +126,7 @@ function CarCard({ car, index }: { car: CarRecommendationWithSlug, index: number
 function LoadingSkeleton() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
+        {Array.from({ length: 12 }).map((i) => (
           <Card key={i} className="overflow-hidden">
             <Skeleton className="h-48 w-full" />
             <div className="p-4 space-y-4">
@@ -146,7 +154,7 @@ function LoadingSkeleton() {
     );
 }
 
-const mockCarData: AiRentalCarRecommendationsOutput = {
+const baseMockCarData: AiRentalCarRecommendationsOutput = {
     recommendations: [
         { name: "Kia Rio", type: "Эконом", supplier: "Local Rent", pricePerDay: "₽2500", rating: 4.5, features: { passengers: 5, luggage: 2, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/kiario/800/600" },
         { name: "Volkswagen Polo", type: "Эконом", supplier: "Profi-Car", pricePerDay: "₽2800", rating: 4.6, features: { passengers: 5, luggage: 2, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/vwpolo/800/600" },
@@ -155,6 +163,14 @@ const mockCarData: AiRentalCarRecommendationsOutput = {
         { name: "BMW 5 Series", type: "Премиум", supplier: "Sixt", pricePerDay: "₽9500", rating: 4.9, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/bmw5/800/600" },
         { name: "Hyundai Creta", type: "SUV", supplier: "Local Rent", pricePerDay: "₽3500", rating: 4.6, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/creta/800/600" },
     ],
+};
+
+const mockCarData: AiRentalCarRecommendationsOutput = {
+    recommendations: Array.from({ length: 4 }).flatMap(() => baseMockCarData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} ${Math.floor(index/baseMockCarData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
 };
 
 const mockCarDataWithSlugs = mockCarData.recommendations.map((car, index) => ({
@@ -167,6 +183,8 @@ export default function RentalCarPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -185,6 +203,7 @@ export default function RentalCarPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
 
     // TODO: Connect to AI flow
     console.log(values);
@@ -207,6 +226,16 @@ export default function RentalCarPageContent() {
   }
 
   const currentCars = hasSearched ? recommendations : mockCarDataWithSlugs;
+
+  const totalPages = Math.ceil(currentCars.length / itemsPerPage);
+  const paginatedCars = currentCars.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -288,8 +317,8 @@ export default function RentalCarPageContent() {
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} автомобилей</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-                {recommendations.map((car, index) => (
-                  <CarCard key={index} car={car} index={index} />
+                {paginatedCars.map((car, index) => (
+                  <CarCard key={`${car.slug}-${index}`} car={car} index={index} />
                 ))}
               </div>
             </div>
@@ -306,12 +335,43 @@ export default function RentalCarPageContent() {
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные предложения</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-                      {currentCars.map((car, index) => (
-                          <CarCard key={index} car={car} index={index} />
+                      {paginatedCars.map((car, index) => (
+                          <CarCard key={`${car.slug}-${index}`} car={car} index={index} />
                       ))}
                   </div>
               </div>
           )}
+
+          {!isLoading && currentCars.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
 

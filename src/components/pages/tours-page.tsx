@@ -27,6 +27,14 @@ import { aiTourRecommendations, type AiTourRecommendationsOutput } from '@/ai/fl
 import Link from "next/link";
 import { TourFilters } from "@/components/tour-filters";
 import { Skeleton } from "../ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type TourRecommendationWithSlug = AiTourRecommendationsOutput[0] & { slug: string };
 
@@ -54,7 +62,7 @@ const generateSlug = (name: string, index: number) => {
 };
 
 
-const mockTourData: AiTourRecommendationsOutput = [
+const baseMockTourData: AiTourRecommendationsOutput = [
     {
         name: "Замки Мира и Несвижа",
         description: "Посетите два самых известных замка Беларуси, внесенных в список Всемирного наследия ЮНЕСКО. Погрузитесь в атмосферу средневековья и магнатской роскоши.",
@@ -170,6 +178,13 @@ const mockTourData: AiTourRecommendationsOutput = [
         ]
     }
 ];
+
+const mockTourData: AiTourRecommendationsOutput = Array.from({ length: 4 }).flatMap(() => baseMockTourData).map((tour, index) => ({
+    ...tour,
+    name: `${tour.name} Вариант ${Math.floor(index/baseMockTourData.length) + 1}`,
+    galleryImageUrls: tour.galleryImageUrls.map(url => url.replace('/seed/', `/seed/${index}-`))
+}));
+
 const mockToursWithSlugs: TourRecommendationWithSlug[] = mockTourData.map((tour, index) => ({
     ...tour,
     slug: generateSlug(tour.name, index),
@@ -208,7 +223,7 @@ function TourCard({ tour }: { tour: TourRecommendationWithSlug }) {
 function LoadingSkeleton() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
                 <Card key={i} className="flex flex-col">
                     <CardHeader>
                         <Skeleton className="h-6 w-3/4 mb-2" />
@@ -233,6 +248,8 @@ export default function ToursPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -246,6 +263,7 @@ export default function ToursPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
     try {
       const result = await aiTourRecommendations({
         destination: values.destination,
@@ -280,6 +298,15 @@ export default function ToursPageContent() {
   if(typeof window !== 'undefined' && !hasSearched) {
       sessionStorage.setItem('tourRecommendations', JSON.stringify(mockToursWithSlugs));
   }
+
+  const totalPages = Math.ceil(currentTours.length / itemsPerPage);
+  const paginatedTours = currentTours.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
 
   return (
@@ -377,7 +404,7 @@ export default function ToursPageContent() {
                  <div>
                     <h2 className="text-2xl font-headline font-bold mb-6">Популярные туры</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {mockToursWithSlugs.map((tour, index) => (
+                        {paginatedTours.map((tour, index) => (
                             <TourCard key={index} tour={tour} />
                         ))}
                     </div>
@@ -388,7 +415,7 @@ export default function ToursPageContent() {
                 <div>
                 <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} туров</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {recommendations.map((tour, index) => (
+                    {paginatedTours.map((tour, index) => (
                     <TourCard key={index} tour={tour} />
                     ))}
                 </div>
@@ -399,6 +426,37 @@ export default function ToursPageContent() {
                     <h3 className="text-xl font-semibold">Ничего не найдено</h3>
                     <p className="text-muted-foreground mt-1 max-w-sm">Попробуйте изменить параметры поиска.</p>
                 </div>
+            )}
+
+            {!isLoading && currentTours.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
             )}
         </main>
       </div>

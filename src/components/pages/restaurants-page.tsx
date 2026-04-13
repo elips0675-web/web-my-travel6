@@ -26,6 +26,14 @@ import { aiRestaurantRecommendations, type AiRestaurantRecommendationsOutput } f
 import { Textarea } from "@/components/ui/textarea";
 import { RestaurantFilters } from "@/components/restaurant-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type RecommendationWithSlug = AiRestaurantRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -92,7 +100,7 @@ function RestaurantCard({ recommendation, index }: { recommendation: Recommendat
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
+      {Array.from({ length: 12 }).map((i) => (
         <Card key={i} className="overflow-hidden flex flex-col">
             <Skeleton className="h-48 w-full" />
             <div className="p-4 space-y-3 flex-grow">
@@ -113,7 +121,7 @@ function LoadingSkeleton() {
   )
 }
 
-const mockRestaurantData: AiRestaurantRecommendationsOutput = {
+const baseMockRestaurantData: AiRestaurantRecommendationsOutput = {
     recommendations: [
       { name: "White Rabbit", cuisine: "Современная русская", location: "Смоленская пл., 3, Москва", description: "Панорамный ресторан с видом на Москву, известный своей инновационной русской кухней.", priceRange: "₽₽₽₽", rating: 4.8, specialty: "Борщ с жареными карасями", imageUrl: "https://picsum.photos/seed/whiterabbit/800/600" },
       { name: "Probka на Цветном", cuisine: "Итальянская", location: "Цветной б-р, 2, Москва", description: "Уютный итальянский ресторан от Арама Мнацаканова с аутентичной кухней и отличной винной картой.", priceRange: "₽₽₽", rating: 4.7, specialty: "Пицца с трюфелем", imageUrl: "https://picsum.photos/seed/probka/800/600" },
@@ -122,6 +130,14 @@ const mockRestaurantData: AiRestaurantRecommendationsOutput = {
       { name: "Sehnsucht", cuisine: "Европейская", location: "Казанская ул., 3А, Санкт-Петербург", description: "Стильный ресторан с авторской кухней и коктейлями в самом центре Петербурга.", priceRange: "₽₽₽", rating: 4.8, specialty: "Тартар из говядины", imageUrl: "https://picsum.photos/seed/sehnsucht/800/600" },
       { name: "Harvest", cuisine: "Овощная", location: "пр. Добролюбова, 11, Санкт-Петербург", description: "Инновационный ресторан, где овощи играют главную роль. Входит в The World's 50 Best Restaurants.", priceRange: "₽₽₽₽", rating: 4.9, specialty: "Капуста с черной икрой", imageUrl: "https://picsum.photos/seed/harvest/800/600" },
     ],
+};
+
+const mockRestaurantData: AiRestaurantRecommendationsOutput = {
+    recommendations: Array.from({ length: 4 }).flatMap(() => baseMockRestaurantData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} ${Math.floor(index/baseMockRestaurantData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
 };
 
 const mockRestaurantDataWithSlugs = mockRestaurantData.recommendations.map((rec, index) => ({
@@ -134,6 +150,8 @@ export default function RestaurantsPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -153,6 +171,7 @@ export default function RestaurantsPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
 
     try {
         const result = await aiRestaurantRecommendations({
@@ -182,6 +201,16 @@ export default function RestaurantsPageContent() {
   }
 
   const currentRestaurants = hasSearched ? recommendations : mockRestaurantDataWithSlugs;
+  
+  const totalPages = Math.ceil(currentRestaurants.length / itemsPerPage);
+  const paginatedRestaurants = currentRestaurants.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -248,8 +277,8 @@ export default function RestaurantsPageContent() {
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} вариантов</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendations.map((rec, index) => (
-                  <RestaurantCard key={rec.slug} recommendation={rec} index={index} />
+                {paginatedRestaurants.map((rec, index) => (
+                  <RestaurantCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                 ))}
               </div>
             </div>
@@ -266,12 +295,43 @@ export default function RestaurantsPageContent() {
               <div>
                   <h2 className="text-2xl font-headline font-bold mb-6">Популярные рестораны</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {currentRestaurants.map((rec, index) => (
-                          <RestaurantCard key={rec.slug} recommendation={rec} index={index} />
+                      {paginatedRestaurants.map((rec, index) => (
+                          <RestaurantCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                       ))}
                   </div>
               </div>
           )}
+
+           {!isLoading && currentRestaurants.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
     </div>

@@ -25,6 +25,14 @@ import { type AiActivityRecommendationsOutput } from '@/ai/flows/ai-activity-rec
 import { Textarea } from "@/components/ui/textarea";
 import { ActivityFilters } from "@/components/activity-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type RecommendationWithSlug = AiActivityRecommendationsOutput['recommendations'][0] & { slug: string };
 
@@ -92,7 +100,7 @@ function ActivityCard({ recommendation, index }: { recommendation: Recommendatio
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
+      {Array.from({ length: 12 }).map((i) => (
         <Card key={i} className="overflow-hidden flex flex-col">
             <Skeleton className="h-48 w-full" />
             <div className="p-4 space-y-3 flex-grow">
@@ -114,7 +122,7 @@ function LoadingSkeleton() {
   )
 }
 
-const mockActivityData: AiActivityRecommendationsOutput = {
+const baseMockActivityData: AiActivityRecommendationsOutput = {
     recommendations: [
       { name: "VR-арена Warpoint", type: "VR-арена", description: "Командный VR-шутер на большой арене. Почувствуй себя героем боевика!", price: "от 30 BYN/час", location: "пр-т Победителей, 9, Минск", rating: 4.9, imageUrl: "https://picsum.photos/seed/vr-warpoint/800/600" },
       { name: "Квест «Пила»", type: "Квест", description: "Хоррор-квест по мотивам знаменитого фильма. Сможете ли вы выбраться из ловушки Конструктора?", price: "от 100 BYN за команду", location: "ул. Куйбышева, 22, Минск", rating: 4.8, imageUrl: "https://picsum.photos/seed/saw-quest/800/600" },
@@ -123,6 +131,14 @@ const mockActivityData: AiActivityRecommendationsOutput = {
       { name: "Парк активного отдыха «0.67»", type: "Активный отдых", description: "Пейнтбол, лазертаг, веревочный городок и беседки для отдыха на природе.", price: "от 40 BYN с человека", location: "Минский район, д. Комарово", rating: 4.8, imageUrl: "https://picsum.photos/seed/park-067/800/600" },
       { name: "Аквапарк «Лебяжий»", type: "Аквапарк", description: "Крупнейший аквапарк в Беларуси с множеством горок, бассейнов и спа-зоной.", price: "от 55 BYN за 4 часа", location: "пр-т Победителей, 120, Минск", rating: 4.5, imageUrl: "https://picsum.photos/seed/aquapark-lebyazhiy/800/600" },
     ],
+};
+
+const mockActivityData: AiActivityRecommendationsOutput = {
+    recommendations: Array.from({ length: 4 }).flatMap(() => baseMockActivityData.recommendations).map((rec, index) => ({
+        ...rec,
+        name: `${rec.name} ${Math.floor(index/baseMockActivityData.recommendations.length) + 1}`,
+        imageUrl: rec.imageUrl?.replace('/seed/', `/seed/${index}-`)
+    }))
 };
 
 const mockActivityDataWithSlugs = mockActivityData.recommendations.map((rec, index) => ({
@@ -135,6 +151,8 @@ export default function ActivitiesPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -154,6 +172,7 @@ export default function ActivitiesPageContent() {
     setIsLoading(true);
     setHasSearched(true);
     setRecommendations([]);
+    setCurrentPage(1);
 
     // AI call is mocked for now
     toast({
@@ -165,6 +184,16 @@ export default function ActivitiesPageContent() {
   }
 
   const currentActivities = hasSearched ? recommendations : mockActivityDataWithSlugs;
+  
+  const totalPages = Math.ceil(currentActivities.length / itemsPerPage);
+  const paginatedActivities = currentActivities.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -227,12 +256,12 @@ export default function ActivitiesPageContent() {
         <main className="lg:col-span-3">
           {isLoading && <LoadingSkeleton />}
           
-          {!isLoading && currentActivities && currentActivities.length > 0 && (
+          {!isLoading && paginatedActivities && paginatedActivities.length > 0 && (
             <div>
               <h2 className="text-2xl font-headline font-bold mb-6">{hasSearched ? `Найдено ${currentActivities.length} вариантов` : 'Популярные развлечения'}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentActivities.map((rec, index) => (
-                  <ActivityCard key={rec.slug} recommendation={rec} index={index} />
+                {paginatedActivities.map((rec, index) => (
+                  <ActivityCard key={`${rec.slug}-${index}`} recommendation={rec} index={index} />
                 ))}
               </div>
             </div>
@@ -244,6 +273,36 @@ export default function ActivitiesPageContent() {
                  <p className="text-muted-foreground mt-1 max-w-sm">Попробуйте изменить параметры поиска.</p>
              </div>
           )}
+           {!isLoading && currentActivities.length > itemsPerPage && (
+                <Pagination className="mt-8">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                aria-disabled={currentPage === 1}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(i + 1)}
+                                    isActive={currentPage === i + 1}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                aria-disabled={currentPage === totalPages}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </main>
       </div>
     </div>

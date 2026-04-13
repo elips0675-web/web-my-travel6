@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import '@/app/globals.css';
 import { Button } from '@/components/ui/button';
 import { Compass, PlusCircle, Menu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';

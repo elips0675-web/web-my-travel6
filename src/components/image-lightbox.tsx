@@ -24,37 +24,41 @@ export function ImageLightbox({ images, startIndex = 0, isOpen, onOpenChange }: 
       return;
     }
 
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
     const handleSelect = () => {
-      setCount(api.scrollSnapList().length);
+      if (!api) return;
       setCurrent(api.selectedScrollSnap() + 1);
     };
-    
+
     api.on('select', handleSelect);
-    api.on('reInit', handleSelect);
-    
-    // Set initial state
-    handleSelect();
+    api.on('reInit', () => {
+      if (!api) return;
+      setCount(api.scrollSnapList().length);
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
 
     return () => {
-        api.off('select', handleSelect);
-        api.off('reInit', handleSelect);
+      api?.off('select', handleSelect);
+      api?.off('reInit', handleSelect);
     };
   }, [api]);
 
   useEffect(() => {
-    if (!api || !isOpen) {
-        return;
+    if (api && isOpen) {
+      api.scrollTo(startIndex, true);
     }
+  }, [api, isOpen, startIndex]);
 
-    if (api.selectedScrollSnap() !== startIndex) {
-        api.scrollTo(startIndex, true);
-    }
+  useEffect(() => {
+    if (!isOpen) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'ArrowRight') {
-            api.scrollNext();
+            api?.scrollNext();
         } else if (e.key === 'ArrowLeft') {
-            api.scrollPrev();
+            api?.scrollPrev();
         } else if (e.key === 'Escape') {
             onOpenChange(false);
         }
@@ -62,8 +66,7 @@ export function ImageLightbox({ images, startIndex = 0, isOpen, onOpenChange }: 
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-
-  }, [api, startIndex, isOpen, onOpenChange]);
+  }, [api, isOpen, onOpenChange]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -72,7 +75,11 @@ export function ImageLightbox({ images, startIndex = 0, isOpen, onOpenChange }: 
         <DialogDescription className="sr-only">
           Лайтбокс с галереей изображений. Используйте стрелки для навигации между изображениями или клавишу Escape для закрытия.
         </DialogDescription>
-        <Carousel setApi={setApi} className="w-full h-full max-w-6xl">
+        <Carousel
+          setApi={setApi}
+          opts={{ startIndex, loop: true }}
+          className="w-full h-full max-w-6xl"
+        >
           <CarouselContent className="h-full">
             {images.map((src, index) => (
               <CarouselItem key={index} className="flex items-center justify-center">

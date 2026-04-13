@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase } from "lucide-react";
@@ -167,43 +168,64 @@ export default function MyRoutesPageContent() {
             
             <section className="py-16 lg:py-24">
                 <div className="container mx-auto px-4">
-                    <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Наши лучшие туры</h2>
-                        <p className="text-lg text-muted-foreground">Исследуйте мир с нашими самыми популярными и высоко оцененными турами.</p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {activities.map((activity, index) => (
-                            <div key={index} className="group flex flex-col">
-                                <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                    <Image
-                                        src={activity.image?.imageUrl || `https://picsum.photos/seed/${activity.title}/600/400`}
-                                        alt={activity.image?.description || activity.title}
-                                        width={600}
-                                        height={400}
-                                        className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
-                                        data-ai-hint={activity.image?.imageHint || activity.title.toLowerCase().replace(' ', '')}
-                                    />
-                                    <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
-                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                        <span>{activity.rating.toFixed(1)}</span>
-                                    </div>
-                                </div>
-                                <div className="pt-4 flex flex-col flex-grow">
-                                    <div className="flex items-center text-sm text-muted-foreground mb-2">
-                                        <MapPin className="w-4 h-4 mr-1.5" />
-                                        {activity.location}
-                                    </div>
-                                    <h3 className="font-bold font-headline text-xl mb-3 text-foreground flex-grow group-hover:text-primary transition-colors">{activity.title}</h3>
-                                    <div className="flex justify-between items-center mt-auto">
-                                         <p className="text-lg font-bold text-foreground">
-                                            {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(activity.price)}
-                                        </p>
-                                        <div className="text-sm text-muted-foreground">{activity.duration}</div>
-                                    </div>
-                                </div>
+                    <Tabs defaultValue="tour" className="w-full">
+                        <div className="flex justify-center mb-12">
+                            <TabsList>
+                                <TabsTrigger value="tour">Тур</TabsTrigger>
+                                <TabsTrigger value="hotel">Отель</TabsTrigger>
+                                <TabsTrigger value="activity">Активности</TabsTrigger>
+                                <TabsTrigger value="rental-car">Аренда авто</TabsTrigger>
+                            </TabsList>
+                        </div>
+                        <TabsContent value="tour">
+                            <div className="text-center max-w-2xl mx-auto mb-12">
+                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Наши лучшие туры</h2>
+                                <p className="text-lg text-muted-foreground">Исследуйте мир с нашими самыми популярными и высоко оцененными турами.</p>
                             </div>
-                        ))}
-                    </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                {activities.map((activity, index) => (
+                                    <div key={index} className="group flex flex-col">
+                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                            <Image
+                                                src={activity.image?.imageUrl || `https://picsum.photos/seed/${activity.title}/600/400`}
+                                                alt={activity.image?.description || activity.title}
+                                                width={600}
+                                                height={400}
+                                                className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                                                data-ai-hint={activity.image?.imageHint || activity.title.toLowerCase().replace(' ', '')}
+                                            />
+                                            <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
+                                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                <span>{activity.rating.toFixed(1)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 flex flex-col flex-grow">
+                                            <div className="flex items-center text-sm text-muted-foreground mb-2">
+                                                <MapPin className="w-4 h-4 mr-1.5" />
+                                                {activity.location}
+                                            </div>
+                                            <h3 className="font-bold font-headline text-xl mb-3 text-foreground flex-grow group-hover:text-primary transition-colors">{activity.title}</h3>
+                                            <div className="flex justify-between items-center mt-auto">
+                                                <p className="text-lg font-bold text-foreground">
+                                                    {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(activity.price)}
+                                                </p>
+                                                <div className="text-sm text-muted-foreground">{activity.duration}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="hotel">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по отелям.</div>
+                        </TabsContent>
+                        <TabsContent value="activity">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по активностям.</div>
+                        </TabsContent>
+                        <TabsContent value="rental-car">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по аренде авто.</div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </section>
 

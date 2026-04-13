@@ -103,6 +103,7 @@ const MapComponent = ({ items, activeItem, onMarkerClick, selectedCategories }: 
     const mapRef = useRef(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [center, setCenter] = useState({ lat: 55.76, lng: 37.64 });
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     useEffect(() => {
         if (map && items.length > 0) {
@@ -127,8 +128,19 @@ const MapComponent = ({ items, activeItem, onMarkerClick, selectedCategories }: 
         }
     };
 
+    if (!apiKey) {
+      return (
+        <div className="h-full w-full bg-muted flex items-center justify-center rounded-lg">
+          <p className="text-muted-foreground text-center p-4">
+            Google Maps API ключ не настроен. <br />
+            Пожалуйста, добавьте NEXT_PUBLIC_GOOGLE_MAPS_API_KEY в ваш .env.local файл.
+          </p>
+        </div>
+      );
+    }
+
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        <APIProvider apiKey={apiKey}>
             <div className="relative w-full h-full">
                 <Map
                     ref={mapRef}

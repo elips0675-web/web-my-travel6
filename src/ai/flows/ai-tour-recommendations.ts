@@ -22,11 +22,17 @@ export type AiTourRecommendationsInput = z.infer<typeof AiTourRecommendationsInp
 
 const TourRecommendationSchema = z.object({
   name: z.string().describe('The name of the tour or excursion.'),
-  description: z.string().describe('A brief description of the tour.'),
+  description: z.string().describe('A brief, engaging description of the tour (2-3 sentences).'),
   type: z.string().describe('The type of activity, e.g., "cultural", "adventure", "food", "sightseeing".'),
-  priceRange: z.string().describe('Estimated price range for the tour, e.g., "$", "$$", "$$$".'),
+  priceRange: z.string().describe('Estimated price for the tour per person, e.g., "€50" or "$120".'),
   bookingLink: z.string().url().describe('A hypothetical booking link for the tour.'),
   relevanceScore: z.number().min(0).max(100).describe('A score from 0 to 100 indicating how relevant this recommendation is to the user\'s interests and destination.'),
+  duration: z.string().describe('The duration of the tour, e.g., "4 hours", "Full day".'),
+  groupSize: z.string().describe('The typical group size, e.g., "Small group (up to 12 people)".'),
+  highlights: z.array(z.string()).describe('A list of 3-4 key highlights or activities included in the tour.'),
+  included: z.array(z.string()).describe('A list of what is included in the price (e.g., "Professional guide", "Transportation", "Entrance fees").'),
+  excluded: z.array(z.string()).describe('A list of what is not included in the price (e.g., "Lunch", "Gratuities", "Hotel pickup").'),
+  galleryImageUrls: z.array(z.string().url()).describe('A list of 4 placeholder image URLs for a gallery from `https://picsum.photos/seed/{a-random-word}/800/600`. The first one should be the main image.'),
 });
 
 const AiTourRecommendationsOutputSchema = z.array(TourRecommendationSchema).describe('A list of personalized tour and excursion recommendations.');
@@ -40,16 +46,27 @@ const aiTourRecommendationsPrompt = ai.definePrompt({
   name: 'aiTourRecommendationsPrompt',
   input: { schema: AiTourRecommendationsInputSchema },
   output: { schema: AiTourRecommendationsOutputSchema },
-  prompt: `You are an expert travel agent specializing in creating personalized tour and excursion recommendations.
-Based on the user's travel plans and interests, generate a list of unique and relevant tours or activities.
-Ensure the recommendations are suitable for the given destination and dates, and align with the specified interests.
-For each recommendation, provide a name, a brief description, the type of activity, an estimated price range, a hypothetical booking link, and a relevance score.
+  prompt: `You are an expert travel agent. Generate a list of 5 personalized tour/excursion recommendations based on the user's criteria.
 
 Destination: {{{destination}}}
 Travel Dates: From {{{travelDates.start}}} to {{{travelDates.end}}}
 User Interests: {{#each interests}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 
-Please provide the output as a JSON array matching the following schema:
+For each recommendation, provide the following details:
+- name: The name of the tour.
+- description: A brief, engaging description (2-3 sentences).
+- type: The type of activity (e.g., "cultural", "adventure", "food").
+- priceRange: Estimated price per person (e.g., "€50", "$120").
+- bookingLink: A hypothetical booking link.
+- relevanceScore: A score from 0 to 100 on how well it matches the user's interests.
+- duration: Tour duration (e.g., "4 hours", "Full day").
+- groupSize: Typical group size (e.g., "Small group (up to 12 people)").
+- highlights: A list of 3-4 key highlights.
+- included: A list of what is included (e.g., "Professional guide", "Transportation").
+- excluded: A list of what is not included (e.g., "Lunch", "Gratuities").
+- galleryImageUrls: A list of 4 placeholder image URLs from \`https://picsum.photos/seed/{a-random-word}/800/600\`. The first URL will be the main image. Ensure each URL has a unique random seed word.
+
+Ensure the output is a JSON array matching the schema.
 {{{_output_schema}}}`,
 });
 

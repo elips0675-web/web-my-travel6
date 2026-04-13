@@ -28,6 +28,8 @@ import Link from "next/link";
 import { TourFilters } from "@/components/tour-filters";
 import { Skeleton } from "../ui/skeleton";
 
+type TourRecommendationWithSlug = AiTourRecommendationsOutput[0] & { slug: string };
+
 const formSchema = z.object({
   destination: z.string().min(2, { message: "Пункт назначения должен содержать не менее 2 символов." }),
   dates: z.object({
@@ -37,6 +39,21 @@ const formSchema = z.object({
   interests: z.string().min(3, { message: "Опишите ваши интересы."}),
 });
 
+const generateSlug = (name: string, index: number) => {
+    const rusToLat: { [key: string]: string } = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh',
+        'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+        'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c',
+        'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    };
+    return name.toLowerCase()
+        .split('').map(char => rusToLat[char] || char).join('')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-') + `-${index}`;
+};
+
+
 const mockTourData: AiTourRecommendationsOutput = [
     {
         name: "Обзорная экскурсия по Риму",
@@ -45,6 +62,12 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "€50",
         bookingLink: "#",
         relevanceScore: 95,
+        duration: "4 часа",
+        groupSize: "до 15 чел.",
+        highlights: ["Колизей", "Римский форум", "Пантеон"],
+        included: ["Гид", "Наушники"],
+        excluded: ["Входные билеты", "Еда и напитки"],
+        galleryImageUrls: ["https://picsum.photos/seed/rome-tour/800/600"]
     },
     {
         name: "Гастрономический тур по Токио",
@@ -53,6 +76,12 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "¥12000",
         bookingLink: "#",
         relevanceScore: 92,
+        duration: "3 часа",
+        groupSize: "до 8 чел.",
+        highlights: ["Рынок Цукидзи", "Дегустация саке", "Мастер-класс по суши"],
+        included: ["Гид", "Дегустации"],
+        excluded: ["Обед", "Транспорт"],
+        galleryImageUrls: ["https://picsum.photos/seed/tokyo-tour/800/600"]
     },
     {
         name: "Полет на вертолете над Гранд-Каньоном",
@@ -61,6 +90,12 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "$250",
         bookingLink: "#",
         relevanceScore: 98,
+        duration: "1 час",
+        groupSize: "до 6 чел.",
+        highlights: ["Вид на плотину Гувера", "Полет над каньоном", "Фото-остановки"],
+        included: ["Полет", "Трансфер из отеля"],
+        excluded: ["Сборы национального парка"],
+        galleryImageUrls: ["https://picsum.photos/seed/canyon-tour/800/600"]
     },
     {
         name: "Винный тур по Тоскане",
@@ -69,6 +104,12 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "€90",
         bookingLink: "#",
         relevanceScore: 94,
+        duration: "Полный день",
+        groupSize: "до 25 чел.",
+        highlights: ["Дегустация вина Кьянти", "Посещение 2 виноделен", "Обед на ферме"],
+        included: ["Транспорт", "Дегустации", "Обед"],
+        excluded: ["Личные расходы"],
+        galleryImageUrls: ["https://picsum.photos/seed/tuscany-tour/800/600"]
     },
      {
         name: "Дайвинг на Большом Барьерном рифе",
@@ -77,6 +118,12 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "$200",
         bookingLink: "#",
         relevanceScore: 96,
+        duration: "Полный день",
+        groupSize: "до 20 чел.",
+        highlights: ["2 погружения с аквалангом", "Снорклинг", "Обед на катамаране"],
+        included: ["Оборудование", "Инструктаж", "Обед"],
+        excluded: ["Подводные фотографии"],
+        galleryImageUrls: ["https://picsum.photos/seed/diving-tour/800/600"]
     },
     {
         name: "Посещение Лувра с гидом",
@@ -85,10 +132,20 @@ const mockTourData: AiTourRecommendationsOutput = [
         priceRange: "€75",
         bookingLink: "#",
         relevanceScore: 93,
+        duration: "3 часа",
+        groupSize: "до 20 чел.",
+        highlights: ["Мона Лиза", "Венера Милосская", "Ника Самофракийская"],
+        included: ["Гид", "Приоритетный вход"],
+        excluded: ["Доступ на временные выставки"],
+        galleryImageUrls: ["https://picsum.photos/seed/louvre-tour/800/600"]
     }
 ];
+const mockToursWithSlugs: TourRecommendationWithSlug[] = mockTourData.map((tour, index) => ({
+    ...tour,
+    slug: generateSlug(tour.name, index),
+}));
 
-function TourCard({ tour }: { tour: AiTourRecommendationsOutput[0] }) {
+function TourCard({ tour }: { tour: TourRecommendationWithSlug }) {
   return (
     <Card className="flex flex-col group transition-shadow hover:shadow-xl">
         <CardHeader>
@@ -110,7 +167,7 @@ function TourCard({ tour }: { tour: AiTourRecommendationsOutput[0] }) {
                 <span className="font-bold text-lg">{tour.priceRange}</span>
             </div>
             <Button asChild>
-                <Link href={tour.bookingLink} target="_blank">Подробнее</Link>
+                <Link href={`/tours/${tour.slug}`}>Подробнее</Link>
             </Button>
         </CardFooter>
     </Card>
@@ -142,7 +199,7 @@ function LoadingSkeleton() {
 
 
 export default function ToursPageContent() {
-  const [recommendations, setRecommendations] = useState<AiTourRecommendationsOutput | null>(null);
+  const [recommendations, setRecommendations] = useState<TourRecommendationWithSlug[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
@@ -158,7 +215,7 @@ export default function ToursPageContent() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setHasSearched(true);
-    setRecommendations(null);
+    setRecommendations([]);
     try {
       const result = await aiTourRecommendations({
         destination: values.destination,
@@ -168,7 +225,15 @@ export default function ToursPageContent() {
         },
         interests: values.interests.split(',').map(i => i.trim()),
       });
-      setRecommendations(result);
+      const recommendationsWithSlugs = result.map((rec, index) => ({
+          ...rec,
+          slug: generateSlug(rec.name, index)
+      }));
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('tourRecommendations', JSON.stringify(recommendationsWithSlugs));
+      }
+      setRecommendations(recommendationsWithSlugs);
     } catch (error) {
       console.error(error);
       toast({
@@ -180,6 +245,12 @@ export default function ToursPageContent() {
       setIsLoading(false);
     }
   }
+
+  const currentTours = hasSearched ? recommendations : mockToursWithSlugs;
+  if(typeof window !== 'undefined' && !hasSearched) {
+      sessionStorage.setItem('tourRecommendations', JSON.stringify(mockToursWithSlugs));
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -276,7 +347,7 @@ export default function ToursPageContent() {
                  <div>
                     <h2 className="text-2xl font-headline font-bold mb-6">Популярные туры</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {mockTourData.map((tour, index) => (
+                        {mockToursWithSlugs.map((tour, index) => (
                             <TourCard key={index} tour={tour} />
                         ))}
                     </div>

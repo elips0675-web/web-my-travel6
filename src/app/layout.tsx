@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import '@/app/globals.css';
 import { Button } from '@/components/ui/button';
-import { Compass, PlusCircle, Menu } from 'lucide-react';
+import { Compass, PlusCircle, Menu, Bell } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -66,6 +66,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   Новый маршрут
                 </Link>
               </Button>
+              <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex">
+                <Link href="/notifications">
+                    <Bell className="h-5 w-5" />
+                    <span className="sr-only">Уведомления</span>
+                </Link>
+              </Button>
               <div className="hidden md:inline-flex">
                 <AuthButton />
               </div>
@@ -96,6 +102,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link href="/rental-car" className="text-muted-foreground hover:text-foreground">Транспорт</Link>
                       <Link href="/multi-filter" className="text-muted-foreground hover:text-foreground">Фильтр</Link>
                       <Link href="/filter-map" className="text-muted-foreground hover:text-foreground">Фильтр-карта</Link>
+                      <Link href="/notifications" className="text-muted-foreground hover:text-foreground">Уведомления</Link>
                     </nav>
                     <div className="absolute bottom-8 left-6 right-6 flex items-center gap-2">
                        <Button asChild className="flex-1">
@@ -104,6 +111,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                              Новый маршрут
                           </Link>
                        </Button>
+                        <Button asChild variant="ghost" size="icon">
+                            <Link href="/notifications">
+                                <Bell className="h-5 w-5" />
+                                <span className="sr-only">Уведомления</span>
+                            </Link>
+                        </Button>
                        <AuthButton />
                     </div>
                   </SheetContent>

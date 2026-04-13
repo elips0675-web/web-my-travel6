@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AuthDialog } from './auth-dialog';
 import { signOut } from 'firebase/auth';
-import { User as UserIcon, LogOut } from 'lucide-react';
+import { User as UserIcon, LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from './ui/skeleton';
 
@@ -30,9 +30,33 @@ export function AuthButton() {
 
     if (!user) {
         return (
-            <AuthDialog>
-                <Button>Войти</Button>
-            </AuthDialog>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button asChild variant="ghost" size="icon" className="rounded-full">
+                        <div>
+                            <Avatar className="h-8 w-8">
+                                <AvatarFallback>
+                                    <UserIcon className="h-5 w-5" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <span className="sr-only">Профиль</span>
+                        </div>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                     <DropdownMenuLabel>Демо-режим</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/profile">Профиль</Link>
+                    </DropdownMenuItem>
+                    <AuthDialog>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <LogIn className="mr-2 h-4 w-4" />
+                            <span>Войти</span>
+                        </DropdownMenuItem>
+                    </AuthDialog>
+                </DropdownMenuContent>
+            </DropdownMenu>
         );
     }
     

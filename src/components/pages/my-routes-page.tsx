@@ -17,20 +17,54 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Cog, DoorClosed, Luggage, Home, Utensils, Gamepad2, Car } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Cog, DoorClosed, Luggage, Home, Utensils, Gamepad2, Car, Mail } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { AiTourRecommendationsOutput } from "@/ai/flows/ai-tour-recommendations";
 import type { AiHousingRecommendationsOutput } from '@/ai/flows/ai-housing-recommendations-flow';
 import type { AiRestaurantRecommendationsOutput } from "@/ai/flows/ai-restaurant-recommendations";
 import type { AiActivityRecommendationsOutput } from "@/ai/flows/ai-activity-recommendations";
-import type { AiRentalCarRecommendationsOutput } from '@/ai/flows/ai-rental-car-recommendations';
+import type { AiRentalCarRecommendationsOutput } from "@/ai/flows/ai-rental-car-recommendations";
 
 const searchSchema = z.object({
   destination: z.string().min(1, { message: "Обязательное поле" }),
   date: z.date().optional(),
 });
+
+function SubscriptionDialog() {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button size="lg">
+                    <Mail className="mr-2 h-5 w-5" />
+                    Подписаться на обновления
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Подписка на рассылку</DialogTitle>
+                    <DialogDescription>
+                        Получайте лучшие предложения и идеи для путешествий прямо на вашу почту.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="email" className="text-right">
+                            Email
+                        </Label>
+                        <Input id="email" type="email" placeholder="name@example.com" className="col-span-3" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="submit">Подписаться</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function MyRoutesPageContent() {
     const router = useRouter();
@@ -118,7 +152,7 @@ export default function MyRoutesPageContent() {
     
     // Rental Cars
     type CarRecommendationWithSlug = AiRentalCarRecommendationsOutput['recommendations'][0] & { slug: string };
-    const baseMockCarData: AiRentalCarRecommendationsOutput = { recommendations: [ { name: "Kia Rio", type: "Эконом", supplier: "Local Rent", pricePerDay: "90 BYN", rating: 4.5, features: { passengers: 5, luggage: 2, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/kiario/800/600" }, { name: "Toyota Camry", type: "Седан", supplier: "Hertz", pricePerDay: "150 BYN", rating: 4.8, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/camry/800/600" }, { name: "Renault Duster", type: "SUV", supplier: "Avis", pricePerDay: "120 BYN", rating: 4.7, features: { passengers: 5, luggage: 4, transmission: "Механика", doors: 4 }, imageUrl: "https://picsum.photos/seed/duster/800/600" }, { name: "BMW 5 Series", type: "Премиум", supplier: "Sixt", pricePerDay: "300 BYN", rating: 4.9, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/bmw5/800/600" }, ], };
+    const baseMockCarData: AiRentalCarRecommendationsOutput = { recommendations: [ { name: "Kia Rio", type: "Эконом", supplier: "Local Rent", price: "90 BYN", rating: 4.5, features: { passengers: 5, luggage: 2, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/kiario/800/600" }, { name: "Toyota Camry", type: "Седан", supplier: "Hertz", price: "150 BYN", rating: 4.8, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/camry/800/600" }, { name: "Renault Duster", type: "SUV", supplier: "Avis", price: "120 BYN", rating: 4.7, features: { passengers: 5, luggage: 4, transmission: "Механика", doors: 4 }, imageUrl: "https://picsum.photos/seed/duster/800/600" }, { name: "BMW 5 Series", type: "Премиум", supplier: "Sixt", price: "300 BYN", rating: 4.9, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/bmw5/800/600" }, ], };
     const popularCars = baseMockCarData.recommendations.slice(0, 4).map((car, index) => ({ ...car, slug: generateSlug(car.name, index) }));
 
     return (
@@ -351,7 +385,7 @@ export default function MyRoutesPageContent() {
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mb-2">{car.type} • {car.features.transmission}</p>
-                                                <p className="text-lg font-bold text-foreground">{car.pricePerDay} <span className="text-sm font-normal text-muted-foreground">/ день</span></p>
+                                                <p className="text-lg font-bold text-foreground">{car.price} <span className="text-sm font-normal text-muted-foreground">/ день</span></p>
                                             </div>
                                         </Link>
                                     ))}
@@ -363,6 +397,16 @@ export default function MyRoutesPageContent() {
             </section>
 
              <section className="py-16 lg:py-24 bg-secondary">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-3xl md:text-4xl font-bold font-headline mb-4">Не пропустите лучшие предложения!</h2>
+                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+                        Подпишитесь на нашу рассылку, чтобы первыми узнавать о новых турах, эксклюзивных скидках и получать вдохновение для следующих путешествий.
+                    </p>
+                    <SubscriptionDialog />
+                </div>
+            </section>
+
+             <section className="py-16 lg:py-24">
                 <div className="container mx-auto px-4">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                        <div className="relative aspect-[4/5] max-w-md mx-auto">

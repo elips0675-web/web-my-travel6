@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ru } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -15,11 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Cog, DoorClosed } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Cog, DoorClosed, Home, Utensils, Gamepad2, Car, Luggage } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { AiTourRecommendationsOutput } from "@/ai/flows/ai-tour-recommendations";
 import type { AiHousingRecommendationsOutput } from '@/ai/flows/ai-housing-recommendations-flow';
@@ -36,6 +36,8 @@ export default function MyRoutesPageContent() {
     const router = useRouter();
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-banner-kayleen');
     const whyUsImage = PlaceHolderImages.find(img => img.id === 'why-choose-us');
+    const [activeTab, setActiveTab] = useState('tours');
+
 
     const form = useForm<z.infer<typeof searchSchema>>({
         resolver: zodResolver(searchSchema),
@@ -49,6 +51,14 @@ export default function MyRoutesPageContent() {
         router.push(`/tours?${params.toString()}`);
     }
     
+    const categories = [
+        { key: 'tours', label: 'Туры', icon: Luggage },
+        { key: 'housing', label: 'Жилье', icon: Home },
+        { key: 'restaurants', label: 'Кафе и рестораны', icon: Utensils },
+        { key: 'activities', label: 'Развлечения', icon: Gamepad2 },
+        { key: 'rental-car', label: 'Транспорт', icon: Car }
+    ];
+
     const destinations = [
         { name: "Париж", image: PlaceHolderImages.find(img => img.id === 'destination-paris') },
         { name: "Рим", image: PlaceHolderImages.find(img => img.id === 'destination-rome') },
@@ -185,165 +195,186 @@ export default function MyRoutesPageContent() {
             
             <section className="py-16 lg:py-24">
                 <div className="container mx-auto px-4">
-                    <Tabs defaultValue="tours" className="w-full">
-                        <div className="flex justify-center mb-12">
-                            <TabsList>
-                                <TabsTrigger value="tours">Туры</TabsTrigger>
-                                <TabsTrigger value="housing">Жилье</TabsTrigger>
-                                <TabsTrigger value="restaurants">Кафе и рестораны</TabsTrigger>
-                                <TabsTrigger value="activities">Развлечения</TabsTrigger>
-                                <TabsTrigger value="rental-car">Транспорт</TabsTrigger>
-                            </TabsList>
+                    <div className="flex justify-center mb-12">
+                        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4">
+                           {categories.map(({ key, label, icon: Icon }) => {
+                                const isActive = activeTab === key;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => setActiveTab(key)}
+                                        className={cn('category-btn flex items-center gap-2 px-6 py-3 rounded-2xl font-medium whitespace-nowrap', {
+                                            'active text-white': isActive,
+                                            'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200': !isActive,
+                                        })}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                        {label}
+                                    </button>
+                                );
+                            })}
                         </div>
-                        <TabsContent value="tours">
-                            <div className="text-center max-w-2xl mx-auto mb-12">
-                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные туры</h2>
-                                <p className="text-lg text-muted-foreground">Исследуйте Беларусь с нашими самыми популярными и высоко оцененными турами.</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {popularTours.map((tour, index) => (
-                                    <Link href={`/tours/${tour.slug}`} key={index} className="group flex flex-col">
-                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                            <Image
-                                                src={tour.galleryImageUrls[0]}
-                                                alt={tour.name}
-                                                width={600}
-                                                height={400}
-                                                className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
-                                                data-ai-hint={tour.type}
-                                            />
-                                             <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
-                                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
-                                            </div>
-                                        </div>
-                                        <div className="pt-4">
-                                            <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{tour.name}</h3>
-                                            <div className="flex justify-between items-center">
-                                                <p className="text-lg font-bold text-foreground">{tour.priceRange}</p>
-                                                <div className="text-sm text-muted-foreground">{tour.duration}</div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="housing">
-                             <div className="text-center max-w-2xl mx-auto mb-12">
-                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярное жилье</h2>
-                                <p className="text-lg text-muted-foreground">Найдите идеальное место для вашего отдыха из наших лучших предложений.</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {popularHousing.map((rec, index) => (
-                                    <Link href={`/housing/${rec.slug}`} key={index} className="group flex flex-col">
-                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                            <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                            {rec.rating && rec.rating >= 4.8 && (
-                                                <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
-                                                    <Award className="w-4 h-4" />
-                                                    <span>Лучший выбор</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="pt-4">
-                                             <div className="flex justify-between items-start">
-                                                <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                                {rec.rating && (
-                                                    <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>{rec.rating.toFixed(1)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mb-2">{rec.location}</p>
-                                            <p className="text-lg font-bold text-foreground">{rec.priceEstimate} <span className="text-sm font-normal text-muted-foreground">/ ночь</span></p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="restaurants">
-                             <div className="text-center max-w-2xl mx-auto mb-12">
-                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные рестораны</h2>
-                                <p className="text-lg text-muted-foreground">Откройте для себя лучшие рестораны, которые мы отобрали для вас.</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                               {popularRestaurants.map((rec, index) => (
-                                    <Link href={`/restaurants/${rec.slug}`} key={index} className="group flex flex-col">
-                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                             <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                        </div>
-                                        <div className="pt-4">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                                {rec.rating && (
-                                                    <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>{rec.rating.toFixed(1)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">{rec.cuisine} • {rec.priceRange}</p>
-                                        </div>
-                                    </Link>
-                               ))}
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="activities">
-                             <div className="text-center max-w-2xl mx-auto mb-12">
-                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные развлечения</h2>
-                                <p className="text-lg text-muted-foreground">Найдите интересные занятия и развлечения на любой вкус.</p>
-                            </div>
-                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {popularActivities.map((rec, index) => (
-                                     <Link href={`/activities/${rec.slug}`} key={index} className="group flex flex-col">
-                                         <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                             <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                             {rec.rating && (
+                    </div>
+                    <div>
+                        {activeTab === 'tours' && (
+                            <div>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные туры</h2>
+                                    <p className="text-lg text-muted-foreground">Исследуйте Беларусь с нашими самыми популярными и высоко оцененными турами.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {popularTours.map((tour, index) => (
+                                        <Link href={`/tours/${tour.slug}`} key={index} className="group flex flex-col">
+                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                <Image
+                                                    src={tour.galleryImageUrls[0]}
+                                                    alt={tour.name}
+                                                    width={600}
+                                                    height={400}
+                                                    className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                                                    data-ai-hint={tour.type}
+                                                />
                                                 <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
                                                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                    <span>{rec.rating.toFixed(1)}</span>
+                                                    <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
                                                 </div>
-                                            )}
-                                        </div>
-                                         <div className="pt-4">
-                                            <p className="text-sm text-muted-foreground">{rec.type}</p>
-                                            <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                            <p className="text-lg font-bold text-foreground">{rec.price}</p>
-                                        </div>
-                                     </Link>
-                                ))}
+                                            </div>
+                                            <div className="pt-4">
+                                                <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{tour.name}</h3>
+                                                <div className="flex justify-between items-center">
+                                                    <p className="text-lg font-bold text-foreground">{tour.priceRange}</p>
+                                                    <div className="text-sm text-muted-foreground">{tour.duration}</div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
-                        </TabsContent>
-                        <TabsContent value="rental-car">
-                             <div className="text-center max-w-2xl mx-auto mb-12">
-                                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярный транспорт</h2>
-                                <p className="text-lg text-muted-foreground">Выберите лучший транспорт для вашего путешествия по выгодной цене.</p>
-                            </div>
-                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {popularCars.map((car, index) => (
-                                    <Link href={`/rental-car/${car.slug}`} key={index} className="group flex flex-col">
-                                        <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                            <Image src={car.imageUrl || ''} alt={car.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                        </div>
-                                        <div className="pt-4">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{car.name}</h3>
-                                                {car.rating && (
-                                                    <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>{car.rating.toFixed(1)}</span>
+                        )}
+                        {activeTab === 'housing' && (
+                            <div>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярное жилье</h2>
+                                    <p className="text-lg text-muted-foreground">Найдите идеальное место для вашего отдыха из наших лучших предложений.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {popularHousing.map((rec, index) => (
+                                        <Link href={`/housing/${rec.slug}`} key={index} className="group flex flex-col">
+                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                                {rec.rating && rec.rating >= 4.8 && (
+                                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
+                                                        <Award className="w-4 h-4" />
+                                                        <span>Лучший выбор</span>
                                                     </div>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-muted-foreground mb-2">{car.type} • {car.features.transmission}</p>
-                                            <p className="text-lg font-bold text-foreground">{car.pricePerDay} <span className="text-sm font-normal text-muted-foreground">/ день</span></p>
-                                        </div>
-                                    </Link>
-                                ))}
+                                            <div className="pt-4">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                    {rec.rating && (
+                                                        <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>{rec.rating.toFixed(1)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mb-2">{rec.location}</p>
+                                                <p className="text-lg font-bold text-foreground">{rec.priceEstimate} <span className="text-sm font-normal text-muted-foreground">/ ночь</span></p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
-                        </TabsContent>
-                    </Tabs>
+                        )}
+                        {activeTab === 'restaurants' && (
+                             <div>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные рестораны</h2>
+                                    <p className="text-lg text-muted-foreground">Откройте для себя лучшие рестораны, которые мы отобрали для вас.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {popularRestaurants.map((rec, index) => (
+                                        <Link href={`/restaurants/${rec.slug}`} key={index} className="group flex flex-col">
+                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                            </div>
+                                            <div className="pt-4">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                    {rec.rating && (
+                                                        <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>{rec.rating.toFixed(1)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{rec.cuisine} • {rec.priceRange}</p>
+                                            </div>
+                                        </Link>
+                                ))}
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'activities' && (
+                            <div>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярные развлечения</h2>
+                                    <p className="text-lg text-muted-foreground">Найдите интересные занятия и развлечения на любой вкус.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {popularActivities.map((rec, index) => (
+                                        <Link href={`/activities/${rec.slug}`} key={index} className="group flex flex-col">
+                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                                {rec.rating && (
+                                                    <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
+                                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                        <span>{rec.rating.toFixed(1)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="pt-4">
+                                                <p className="text-sm text-muted-foreground">{rec.type}</p>
+                                                <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                <p className="text-lg font-bold text-foreground">{rec.price}</p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'rental-car' && (
+                            <div>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярный транспорт</h2>
+                                    <p className="text-lg text-muted-foreground">Выберите лучший транспорт для вашего путешествия по выгодной цене.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {popularCars.map((car, index) => (
+                                        <Link href={`/rental-car/${car.slug}`} key={index} className="group flex flex-col">
+                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                <Image src={car.imageUrl || ''} alt={car.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                            </div>
+                                            <div className="pt-4">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{car.name}</h3>
+                                                    {car.rating && (
+                                                        <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>{car.rating.toFixed(1)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mb-2">{car.type} • {car.features.transmission}</p>
+                                                <p className="text-lg font-bold text-foreground">{car.pricePerDay} <span className="text-sm font-normal text-muted-foreground">/ день</span></p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </section>
 

@@ -4,8 +4,8 @@ import { Compass, PlusCircle, Menu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import './globals.css';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import PwaInstallBanner from '@/components/pwa-install-banner';
 
 export const metadata = {
   title: 'Путевой Компас',
@@ -16,6 +16,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#FFFFFF" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -68,7 +70,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
-                  <SheetHeader className="sr-only">
+                  <SheetHeader>
                     <SheetTitle>Мобильное меню</SheetTitle>
                     <SheetDescription>
                       Навигация по сайту. Выберите один из пунктов для перехода на соответствующую страницу.
@@ -103,6 +105,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main className="flex-1">
           {children}
         </main>
+        <PwaInstallBanner />
         <Toaster />
       </body>
     </html>

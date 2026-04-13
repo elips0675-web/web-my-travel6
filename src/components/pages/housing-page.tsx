@@ -49,9 +49,9 @@ function HousingCard({ recommendation, index }: { recommendation: AiHousingRecom
           width={800}
           height={600}
           className="object-cover h-full w-full aspect-video md:aspect-auto group-hover:scale-105 transition-transform duration-300"
-          data-ai-hint="apartment interior"
+          data-ai-hint={`${recommendation.type.toLowerCase()} interior`}
         />
-        {recommendation.rating && recommendation.rating >= 4.5 && (
+        {recommendation.rating && recommendation.rating >= 4.8 && (
             <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
                 <Award className="w-4 h-4" />
                 <span>Лучший выбор</span>
@@ -134,6 +134,55 @@ function LoadingSkeleton() {
     </div>
   )
 }
+
+const mockHousingData: AiHousingRecommendationsOutput = {
+    recommendations: [
+      {
+        name: "Гранд-отель «Европа»",
+        type: "Отель",
+        location: "Санкт-Петербург, Россия",
+        description: "Исторический пятизвездочный отель в самом центре города с роскошными номерами и безупречным сервисом.",
+        priceEstimate: "₽25000",
+        rating: 5.0,
+        pros: ["Идеальное расположение", "Историческая атмосфера", "Высококлассный сервис", "Спа-центр"],
+        cons: ["Высокая цена"],
+        imageUrl: "https://picsum.photos/seed/grandhotel/800/600",
+      },
+      {
+        name: "Апартаменты «Москва-Сити»",
+        type: "Апартаменты",
+        location: "Москва, Россия",
+        description: "Современные апартаменты с панорамным видом на город в одной из башен комплекса «Москва-Сити».",
+        priceEstimate: "₽18000",
+        rating: 4.8,
+        pros: ["Панорамный вид на город", "Современный дизайн", "Высокий этаж"],
+        cons: ["Может быть шумно"],
+        imageUrl: "https://picsum.photos/seed/moscowcity/800/600",
+      },
+      {
+        name: "Бутик-отель «Библиотека»",
+        type: "Бутик-отель",
+        location: "Вологда, Россия",
+        description: "Уютный и тихий отель с уникальным дизайном, посвященным книгам и литературе. Идеально для спокойного отдыха.",
+        priceEstimate: "₽8000",
+        rating: 4.9,
+        pros: ["Уникальная концепция", "Тихое и спокойное место", "Собственная библиотека"],
+        cons: ["Небольшой номерной фонд"],
+        imageUrl: "https://picsum.photos/seed/libraryhotel/800/600",
+      },
+      {
+        name: "Эко-отель «Роза Хутор»",
+        type: "Отель",
+        location: "Сочи, Россия",
+        description: "Отель в горах с прекрасным видом, окруженный природой. Идеально для любителей активного отдыха.",
+        priceEstimate: "₽12000",
+        rating: 4.7,
+        pros: ["Горный воздух", "Доступ к подъемникам", "Экологичные материалы"],
+        cons: ["Удаленность от моря"],
+        imageUrl: "https://picsum.photos/seed/rosakhutor/800/600",
+      }
+    ],
+  };
 
 
 export default function HousingPageContent() {
@@ -264,10 +313,19 @@ export default function HousingPageContent() {
           )}
 
           {!isLoading && !recommendations && (
-              <div className="flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-lg h-full min-h-[400px]">
-                  <Search className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-xl font-semibold">Результаты появятся здесь</h3>
-                  <p className="text-muted-foreground mt-1">Заполните форму выше, чтобы найти жилье вашей мечты.</p>
+              <div className="space-y-8">
+                  <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
+                      <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <h3 className="text-xl font-semibold">Результаты появятся здесь</h3>
+                      <p className="text-muted-foreground mt-1">Заполните форму выше, чтобы найти жилье вашей мечты, или выберите из популярных вариантов ниже.</p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                      <h2 className="text-2xl font-headline font-bold">Популярные предложения</h2>
+                      {mockHousingData.recommendations.map((rec, index) => (
+                          <HousingCard key={index} recommendation={rec} index={index} />
+                      ))}
+                  </div>
               </div>
           )}
         </main>

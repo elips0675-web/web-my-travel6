@@ -202,6 +202,7 @@ export default function MyRoutesPageContent() {
                             <TabsList>
                                 <TabsTrigger value="tour">Тур</TabsTrigger>
                                 <TabsTrigger value="hotel">Жилье</TabsTrigger>
+                                <TabsTrigger value="restaurants">Кафе и рестораны</TabsTrigger>
                                 <TabsTrigger value="activity">Активности</TabsTrigger>
                                 <TabsTrigger value="rental-car">Аренда авто</TabsTrigger>
                             </TabsList>
@@ -247,6 +248,9 @@ export default function MyRoutesPageContent() {
                         </TabsContent>
                         <TabsContent value="hotel">
                              <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по жилью.</div>
+                        </TabsContent>
+                        <TabsContent value="restaurants">
+                             <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по кафе и ресторанам.</div>
                         </TabsContent>
                         <TabsContent value="activity">
                              <div className="text-center py-12 text-muted-foreground">Здесь скоро будут предложения по активностям.</div>

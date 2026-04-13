@@ -25,8 +25,9 @@ import { CalendarIcon, Loader2, Search, Star } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from 'date-fns/locale';
 import { aiTourRecommendations, type AiTourRecommendationsOutput } from '@/ai/flows/ai-tour-recommendations';
-import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { TourFilters } from "@/components/tour-filters";
+import { Skeleton } from "../ui/skeleton";
 
 const formSchema = z.object({
   destination: z.string().min(2, { message: "Пункт назначения должен содержать не менее 2 символов." }),
@@ -39,33 +40,61 @@ const formSchema = z.object({
 
 function TourCard({ tour }: { tour: AiTourRecommendationsOutput[0] }) {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col group transition-shadow hover:shadow-xl">
         <CardHeader>
             <div className="flex justify-between items-start gap-4">
-                <CardTitle className="font-headline">{tour.name}</CardTitle>
-                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
+                <CardTitle className="font-headline text-xl group-hover:text-primary transition-colors">{tour.name}</CardTitle>
+                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md shrink-0">
                     <Star className="w-4 h-4 fill-current" />
                     <span>{ (tour.relevanceScore / 20).toFixed(1) }</span>
                 </div>
             </div>
-            <CardDescription>{tour.type}</CardDescription>
+            <CardDescription className="capitalize">{tour.type}</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
-            <p className="text-sm text-muted-foreground">{tour.description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-3">{tour.description}</p>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
-            <span className="font-bold text-lg">{tour.priceRange}</span>
+        <CardFooter className="flex justify-between items-center bg-secondary/30 mt-auto pt-4">
+            <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">Цена от</span>
+                <span className="font-bold text-lg">{tour.priceRange}</span>
+            </div>
             <Button asChild>
-                <Link href={tour.bookingLink} target="_blank">Забронировать</Link>
+                <Link href={tour.bookingLink} target="_blank">Подробнее</Link>
             </Button>
         </CardFooter>
     </Card>
   )
 }
 
+
+function LoadingSkeleton() {
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="flex flex-col">
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-12 w-full" />
+                    </CardContent>
+                    <CardFooter className="flex justify-between items-center bg-secondary/30 mt-auto pt-4">
+                        <Skeleton className="h-8 w-1/3" />
+                        <Skeleton className="h-10 w-1/4" />
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
+    )
+}
+
+
 export default function ToursPageContent() {
   const [recommendations, setRecommendations] = useState<AiTourRecommendationsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -78,6 +107,7 @@ export default function ToursPageContent() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    setHasSearched(true);
     setRecommendations(null);
     try {
       const result = await aiTourRecommendations({
@@ -102,8 +132,8 @@ export default function ToursPageContent() {
   }
 
   return (
-    <div className="space-y-8">
-      <Card className="max-w-3xl mx-auto">
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      <Card className="max-w-7xl mx-auto">
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Поиск туров и экскурсий</CardTitle>
           <CardDescription>Найдите идеальные развлечения для вашего путешествия с помощью AI.</CardDescription>
@@ -111,7 +141,7 @@ export default function ToursPageContent() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="destination"
@@ -151,47 +181,64 @@ export default function ToursPageContent() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="interests"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-col justify-end">
+                        <FormLabel>Ваши интересы</FormLabel>
+                        <FormControl>
+                        <Input placeholder="история, еда..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               </div>
-              <FormField
-                control={form.control}
-                name="interests"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ваши интересы</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Опишите через запятую, что вам интересно..." {...field} />
-                    </FormControl>
-                     <FormDescription>Например: история, еда, природа, шоппинг, искусство.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Найти туры
-              </Button>
+               <div className="flex justify-end">
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                    Найти туры
+                </Button>
+               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
       
-      {isLoading && (
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-2 text-muted-foreground">Подбираем лучшие туры для вас...</p>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <aside className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
+          <TourFilters />
+        </aside>
 
-      {recommendations && (
-        <div>
-          <h2 className="text-2xl font-headline font-bold mb-6 text-center">Рекомендованные туры и экскурсии</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map((tour, index) => (
-              <TourCard key={index} tour={tour} />
-            ))}
-          </div>
-        </div>
-      )}
+        <main className="lg:col-span-3">
+            {isLoading && <LoadingSkeleton />}
+            {!isLoading && !hasSearched && (
+                 <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg h-full">
+                    <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <h3 className="text-xl font-semibold">Результаты поиска появятся здесь</h3>
+                    <p className="text-muted-foreground mt-1 max-w-sm">Заполните форму выше, чтобы найти туры, которые подходят именно вам.</p>
+                </div>
+            )}
+            {!isLoading && hasSearched && recommendations && (
+                <div>
+                <h2 className="text-2xl font-headline font-bold mb-6">Найдено {recommendations.length} туров</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {recommendations.map((tour, index) => (
+                    <TourCard key={index} tour={tour} />
+                    ))}
+                </div>
+                </div>
+            )}
+             {!isLoading && hasSearched && (!recommendations || recommendations.length === 0) && (
+                <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg h-full">
+                    <h3 className="text-xl font-semibold">Ничего не найдено</h3>
+                    <p className="text-muted-foreground mt-1 max-w-sm">Попробуйте изменить параметры поиска.</p>
+                </div>
+            )}
+        </main>
+      </div>
+
     </div>
   );
 }

@@ -2,10 +2,11 @@ import { type Route, type Place } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Map from '@/components/map';
-import { Calendar, Edit, MapPin, PlusCircle, Building2, Landmark, Utensils } from 'lucide-react';
+import { Edit, MapPin, PlusCircle, Building2, Landmark, Utensils } from 'lucide-react';
 import Suggestions from '@/components/suggestions';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RouteDateDisplay } from '../route-date-display';
 
 function PlaceIcon({ type }: { type: Place['type'] }) {
     const className = "h-5 w-5 text-primary-foreground";
@@ -62,7 +63,7 @@ export default function RouteDetailsPageContent({ route }: { route: Route }) {
                             <h1 className="text-4xl font-headline font-bold">{route.name}</h1>
                             <div className="flex items-center flex-wrap gap-4 text-muted-foreground mt-2">
                                 <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {route.destination}</span>
-                                <span className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {new Date(route.startDate).toLocaleDateString('ru-RU')} - {new Date(route.endDate).toLocaleDateString('ru-RU')}</span>
+                                <RouteDateDisplay startDate={route.startDate} endDate={route.endDate} />
                             </div>
                         </div>
                         <Button variant="outline" className="w-full md:w-auto"><Edit className="mr-2 h-4 w-4" /> Редактировать</Button>

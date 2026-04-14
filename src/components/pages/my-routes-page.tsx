@@ -72,12 +72,12 @@ function MyRoutes() {
   return (
     <section className="py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
           <div className="space-y-2">
             <h2 className="text-4xl md:text-5xl font-bold font-headline">Мои маршруты</h2>
             <p className="text-lg text-muted-foreground">Здесь собраны все ваши запланированные путешествия.</p>
           </div>
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="w-full md:w-auto shrink-0">
             <Link href="/routes/new">
               <PlusCircle className="mr-2 h-5 w-5" />
               Создать маршрут
@@ -290,7 +290,7 @@ export default function MyRoutesPageContent() {
                         <p className="text-lg text-muted-foreground">Ознакомьтесь с нашими лучшими предложениями в различных категориях.</p>
                     </div>
                     <div className="flex justify-center mb-12">
-                        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4">
+                        <div className="flex flex-wrap justify-center gap-3 pb-4">
                            {categories.map(({ key, label, icon: Icon }) => {
                                 const isActive = activeTab === key;
                                 return (

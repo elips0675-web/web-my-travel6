@@ -5,7 +5,7 @@ import { Compass, Menu, Bell } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import PwaInstallBanner from '@/components/pwa-install-banner';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthButton } from '@/components/auth-button';
@@ -85,18 +85,36 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       </SheetDescription>
                     </SheetHeader>
                     <nav className="grid gap-6 text-lg font-medium mt-8">
-                      <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
-                        <Compass className="h-6 w-6 text-primary" />
-                        <span>Путевой Компас</span>
-                      </Link>
-                      <Link href="/tours" className="text-muted-foreground hover:text-foreground">Туры</Link>
-                      <Link href="/housing" className="text-muted-foreground hover:text-foreground">Жилье</Link>
-                      <Link href="/restaurants" className="text-muted-foreground hover:text-foreground">Кафе и рестораны</Link>
-                      <Link href="/activities" className="text-muted-foreground hover:text-foreground">Развлечения</Link>
-                      <Link href="/rental-car" className="text-muted-foreground hover:text-foreground">Транспорт</Link>
-                      <Link href="/multi-filter" className="text-muted-foreground hover:text-foreground">Фильтр</Link>
-                      <Link href="/filter-map" className="text-muted-foreground hover:text-foreground">Фильтр-карта</Link>
-                      <Link href="/notifications" className="text-muted-foreground hover:text-foreground">Уведомления</Link>
+                      <SheetClose asChild>
+                        <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
+                          <Compass className="h-6 w-6 text-primary" />
+                          <span>Путевой Компас</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/tours" className="text-muted-foreground hover:text-foreground">Туры</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/housing" className="text-muted-foreground hover:text-foreground">Жилье</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/restaurants" className="text-muted-foreground hover:text-foreground">Кафе и рестораны</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/activities" className="text-muted-foreground hover:text-foreground">Развлечения</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/rental-car" className="text-muted-foreground hover:text-foreground">Транспорт</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/multi-filter" className="text-muted-foreground hover:text-foreground">Фильтр</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/filter-map" className="text-muted-foreground hover:text-foreground">Фильтр-карта</Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/notifications" className="text-muted-foreground hover:text-foreground">Уведомления</Link>
+                      </SheetClose>
                     </nav>
                     <div className="absolute bottom-8 left-6 right-6 flex items-center justify-end gap-2">
                         <Button asChild variant="ghost" size="icon">

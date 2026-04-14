@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { type AiHousingRecommendationsOutput } from '@/ai/flows/ai-housing-recommendations-flow';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus, CalendarIcon, Search, Heart } from 'lucide-react';
+import { Star, MapPin, Check, Wifi, Wind, Tv, Utensils, ParkingCircle, ChevronLeft, Users, Minus, Plus, CalendarIcon, Search, Heart, Shirt, WashingMachine, Dumbbell, Fan, Baby, GlassWater, Footprints, Phone, AlarmClock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -19,11 +19,21 @@ import { BookingWidget } from '../booking-widget';
 type HousingRecommendation = AiHousingRecommendationsOutput['recommendations'][0] & { slug: string };
 
 const amenitiesMap = [
-    { name: "Free WiFi", icon: Wifi, keyword: 'wifi' },
-    { name: "Air Conditioning", icon: Wind, keyword: 'conditioning' },
-    { name: "TV", icon: Tv, keyword: 'tv' },
-    { name: "Kitchen", icon: Utensils, keyword: 'kitchen' },
-    { name: "Free Parking", icon: ParkingCircle, keyword: 'parking' },
+    { name: "Wi-Fi", icon: Wifi, keyword: 'wi-fi' },
+    { name: "Кондиционер", icon: Wind, keyword: 'кондиционер' },
+    { name: "Телевизор", icon: Tv, keyword: 'телевизор' },
+    { name: "Кухня", icon: Utensils, keyword: 'кухня' },
+    { name: "Парковка", icon: ParkingCircle, keyword: 'парковк' },
+    { name: "Халаты", icon: Shirt, keyword: 'халат' },
+    { name: "Химчистка", icon: WashingMachine, keyword: 'химчистк' },
+    { name: "Фитнес-центр", icon: Dumbbell, keyword: 'фитнес' },
+    { name: "Фен", icon: Fan, keyword: 'фен' },
+    { name: "Детский стульчик", icon: Baby, keyword: 'детский стульчик' },
+    { name: "Мини-бар", icon: GlassWater, keyword: 'мини-бар' },
+    { name: "Ресторан", icon: Utensils, keyword: 'ресторан' },
+    { name: "Тапочки", icon: Footprints, keyword: 'тапочки' },
+    { name: "Телефон", icon: Phone, keyword: 'телефон' },
+    { name: "Услуга \"звонок-будильник\"", icon: AlarmClock, keyword: 'будильник' },
 ];
 
 function PageSkeleton() {
@@ -180,7 +190,7 @@ export default function HousingDetailsPageContent({ slug }: { slug: string }) {
                             </TabsList>
                             <TabsContent value="amenities" className="pt-6">
                                 <h3 className="font-headline font-bold text-2xl mb-4">Что предлагает это место</h3>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                     {amenitiesMap.map((amenity) => {
                                         const isAvailable = recommendation.pros.some(pro => pro.toLowerCase().includes(amenity.keyword)) || recommendation.description.toLowerCase().includes(amenity.keyword);
                                         return (

@@ -191,7 +191,7 @@ export default function ProfilePageContent() {
   
   const currentUser = isDemo ? demoUsers[demoType] : { ...user, ...(userProfile || {}) };
   const isBusinessOwner = currentUser?.isBusinessOwner;
-  const interests = isBusinessOwner ? demoUsers.business.interests : demoUsers.traveler.interests;
+  const interests = isDemo ? demoUsers[demoType].interests : (currentUser as any)?.interests || [];
   
 
   return (

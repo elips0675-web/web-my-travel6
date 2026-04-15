@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { Search, Star, MapPin, Clock, Users, Filter, X, ChevronDown, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -386,21 +386,23 @@ export default function MultiFilterContent() {
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Category Tabs */}
-                <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 mb-6">
-                    {Object.entries(categoryLabels).map(([key, { label, icon: Icon, color }]) => {
+                <div className="flex flex-wrap gap-3 pb-4 mb-6">
+                    {Object.entries(categoryLabels).map(([key, { label, icon: Icon, color }], index) => {
                         const isActive = selectedCategories.includes(key);
                         return (
-                            <button
-                                key={key}
-                                onClick={() => toggleCategory(key)}
-                                className={cn('category-btn flex items-center gap-2 px-6 py-3 rounded-2xl font-medium whitespace-nowrap', {
-                                    'active text-white': isActive,
-                                    'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200': !isActive,
-                                })}
-                            >
-                                <Icon />
-                                {label}
-                            </button>
+                            <Fragment key={key}>
+                                <button
+                                    onClick={() => toggleCategory(key)}
+                                    className={cn('category-btn flex items-center gap-2 px-6 py-3 rounded-2xl font-medium whitespace-nowrap justify-center flex-grow', {
+                                        'active text-white': isActive,
+                                        'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200': !isActive,
+                                    })}
+                                >
+                                    <Icon />
+                                    {label}
+                                </button>
+                                {index === 2 && <div className="w-full h-0 block md:hidden" />}
+                            </Fragment>
                         );
                     })}
                 </div>

@@ -1,15 +1,14 @@
 import type { ReactNode } from 'react';
 import '@/app/globals.css';
 import { Button } from '@/components/ui/button';
-import { Compass, Menu, Bell } from 'lucide-react';
+import { Compass, Menu, Bell, User } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import PwaInstallBanner from '@/components/pwa-install-banner';
-// import { FirebaseClientProvider } from '@/firebase/client-provider';
-// import { AuthButton } from '@/components/auth-button';
-import { AuthDialog } from '@/components/auth-dialog';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { AuthButton } from '@/components/auth-button';
 
 export const metadata = {
   title: 'Путевой Компас',
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen bg-background')}>
-        {/* <FirebaseClientProvider> */}
+        <FirebaseClientProvider>
           <header className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 border-b border-border/40 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2">
@@ -60,14 +59,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </nav>
             </div>
             <div className="flex items-center gap-4">
-              {/* <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex">
+              <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex">
                 <Link href="/notifications">
                     <Bell className="h-5 w-5" />
                     <span className="sr-only">Уведомления</span>
                 </Link>
-              </Button> */}
+              </Button>
               <div className="hidden md:inline-flex">
-                {/* <AuthButton /> */}
+                <AuthButton />
               </div>
               <div className="md:hidden">
                 <Sheet>
@@ -115,15 +114,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <SheetClose asChild>
                         <Link href="/notifications" className="text-muted-foreground hover:text-foreground">Уведомления</Link>
                       </SheetClose>
+                       <SheetClose asChild>
+                        <Link href="/profile" className="text-muted-foreground hover:text-foreground">Профиль</Link>
+                      </SheetClose>
                     </nav>
-                    <div className="absolute bottom-8 left-6 right-6 flex items-center justify-end gap-2">
-                        {/* <Button asChild variant="ghost" size="icon">
+                    <div className="absolute bottom-8 left-6 right-6 flex items-center justify-between gap-2">
+                        <Button asChild variant="ghost" size="icon">
                             <Link href="/notifications">
                                 <Bell className="h-5 w-5" />
                                 <span className="sr-only">Уведомления</span>
                             </Link>
-                        </Button> */}
-                       {/* <AuthButton /> */}
+                        </Button>
+                       <AuthButton />
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -136,7 +138,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           
           <PwaInstallBanner />
           <Toaster />
-        {/* </FirebaseClientProvider> */}
+        </FirebaseClientProvider>
       </body>
     </html>
   );

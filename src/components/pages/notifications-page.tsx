@@ -2,13 +2,44 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BellRing, Plane } from "lucide-react";
+import { useUser } from "@/firebase";
+import { Loader2 } from "lucide-react";
+import { AuthDialog } from "../auth-dialog";
+import { Button } from "../ui/button";
 
 export default function NotificationsPageContent() {
+  const { user, isLoading } = useUser();
+  
   const notifications = [
     { id: 1, title: 'Ваш маршрут в Париж обновлен!', description: 'Добавлено новое место: Музей Орсе.', date: '2 часа назад', read: false },
     { id: 2, title: 'Специальное предложение!', description: 'Скидка 15% на туры в Италию на следующей неделе.', date: '1 день назад', read: false },
     { id: 3, title: 'Ваш отзыв опубликован', description: 'Спасибо, что поделились впечатлениями о туре "Замки Мира и Несвижа".', date: '3 дня назад', read: true },
   ];
+
+  if (isLoading) {
+    return (
+        <div className="container mx-auto max-w-4xl py-8 flex justify-center items-center h-96">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
+
+  if (!user) {
+    return (
+        <div className="container mx-auto max-w-4xl py-8">
+            <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                <BellRing className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold">Вы не авторизованы</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Войдите, чтобы посмотреть свои уведомления.</p>
+                <div className="mt-6">
+                    <AuthDialog>
+                        <Button>Войти</Button>
+                    </AuthDialog>
+                </div>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="container mx-auto max-w-4xl py-8">

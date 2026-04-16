@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ import { Textarea } from "../ui/textarea";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Название должно содержать не менее 2 символов." }),
   destination: z.string().min(2, { message: "Пункт назначения должен содержать не менее 2 символов." }),
+  city: z.string({ required_error: "Пожалуйста, выберите город." }),
   dates: z.object({
     from: z.date({ required_error: "Необходима дата начала." }),
     to: z.date({ required_error: "Необходима дата окончания." }),
@@ -56,6 +58,8 @@ const savedItemsData = [
     { id: 'item-4', category: 'activities', name: 'Посещение Национальной библиотеки', content: 'Смотровая площадка с панорамным видом на город.' },
 ];
 
+const cityList = ["Минск", "Брест", "Гомель", "Гродно", "Могилев", "Витебск", "Бобруйск", "Париж"];
+
 export default function NewRoutePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,13 +70,14 @@ export default function NewRoutePageContent() {
 
 
   const destinationParam = searchParams.get("destination");
-  const categoriesParam = searchParams.getAll("category");
+  const cityParam = searchParams.get("city");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       destination: destinationParam || "Минск, Беларусь",
+      city: cityParam || undefined,
       notes: "Не забыть купить сувениры для друзей и попробовать драники."
     },
   });
@@ -235,17 +240,26 @@ export default function NewRoutePageContent() {
                             />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
-                            control={form.control}
-                            name="destination"
-                            render={({ field }) => (
+                              control={form.control}
+                              name="city"
+                              render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Пункт назначения</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Например, Минск, Беларусь" {...field} />
-                                </FormControl>
-                                <FormMessage />
+                                  <FormLabel>Город</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Выберите город" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {cityList.map(city => (
+                                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
                                 </FormItem>
-                            )}
+                              )}
                             />
                             <FormField
                             control={form.control}

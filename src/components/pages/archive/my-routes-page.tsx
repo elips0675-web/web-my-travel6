@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { ru } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -18,9 +18,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Cog, DoorClosed, Luggage, Home, Utensils, Gamepad2, Car, Mail } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Star, ShieldCheck, Users, Briefcase, Award, Luggage, Home, Utensils, Gamepad2, Car, Mail, LocateIcon, Loader2 } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { AiTourRecommendationsOutput } from "@/ai/flows/ai-tour-recommendations";
 import type { AiHousingRecommendationsOutput } from "@/ai/flows/ai-housing-recommendations-flow";
@@ -70,7 +71,9 @@ export default function MyRoutesPageContent() {
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-banner-kayleen');
     const whyUsImage = PlaceHolderImages.find(img => img.id === 'why-choose-us');
     const [activeTab, setActiveTab] = useState('tours');
-
+    const [selectedCity, setSelectedCity] = useState('Минск');
+    const [isLocating, setIsLocating] = useState(false);
+    const [locationError, setLocationError] = useState('');
 
     const form = useForm<z.infer<typeof searchSchema>>({
         resolver: zodResolver(searchSchema),
@@ -103,13 +106,31 @@ export default function MyRoutesPageContent() {
         { name: "Париж", image: PlaceHolderImages.find(img => img.id === 'destination-paris') },
     ];
 
+    const cityList = ['Все города', ...new Set(destinations.map(d => d.name))];
+
+    const handleDetectCity = () => {
+        setIsLocating(true);
+        setLocationError('');
+        setTimeout(() => { // Имитация геолокации
+            if (navigator.geolocation) {
+                // В реальном приложении здесь будет вызов API геокодинга
+                // Для примера просто выберем случайный город
+                const randomCity = cityList[Math.floor(Math.random() * (cityList.length -1)) + 1]; // Исключаем "Все города"
+                setSelectedCity(randomCity);
+                setIsLocating(false);
+            } else {
+                setLocationError("Геолокация не поддерживается вашим браузером.");
+                setIsLocating(false);
+            }
+        }, 1500);
+    };
+
     const whyChooseUsItems = [
         { icon: ShieldCheck, title: "Гарантия лучшей цены", description: "Мы предлагаем конкурентные цены на тысячи направлений." },
         { icon: Users, title: "Поддержка клиентов 24/7", description: "Наша команда поддержки всегда готова помочь вам." },
         { icon: Briefcase, title: "Простое бронирование", description: "Интуитивно понятный процесс бронирования за несколько кликов." },
     ];
     
-    // Data and Cards
     const generateSlug = (name: string, index: number) => {
         const rusToLat: { [key: string]: string } = {
             'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh',
@@ -124,35 +145,42 @@ export default function MyRoutesPageContent() {
             .replace(/-+/g, '-') + `-${index}`;
     };
 
-    // Tours
-    type TourRecommendationWithSlug = AiTourRecommendationsOutput[0] & { slug: string };
-    const baseMockTourData: AiTourRecommendationsOutput = [
-        { name: "Замки Мира и Несвижа", description: "Посетите два самых известных замка Беларуси, внесенных в список Всемирного наследия ЮНЕСКО.", type: "культурно-исторический", priceRange: "150 BYN", bookingLink: "#", relevanceScore: 98, duration: "Целый день", groupSize: "до 40 чел.", highlights: ["Мирский замок", "Несвижский дворцово-парковый комплекс", "Фарный костел в Несвиже"], included: ["Транспорт", "Услуги гида"], excluded: ["Входные билеты", "Обед"], galleryImageUrls: [ "https://picsum.photos/seed/mir-castle/800/600" ] },
-        { name: "Беловежская пуща и Поместье Деда Мороза", description: "Откройте для себя древнейший лес Европы, увидьте могучих зубров и загляните в гости к белорусскому Деду Морозу.", type: "природа", priceRange: "180 BYN", bookingLink: "#", relevanceScore: 95, duration: "Целый день", groupSize: "до 45 чел.", highlights: ["Вольеры с дикими животными", "Музей природы", "Поместье Деда Мороза"], included: ["Транспорт", "Услуги гида", "Входные билеты в поместье"], excluded: ["Обед", "Билеты в Музей природы"], galleryImageUrls: [ "https://picsum.photos/seed/belovezha/800/600" ]},
-        { name: "Обзорная экскурсия по Минску", description: "Познакомьтесь с главным городом Беларуси: от старинного Троицкого предместья до современных проспектов.", type: "обзорная", priceRange: "70 BYN", bookingLink: "#", relevanceScore: 93, duration: "4 часа", groupSize: "до 40 чел.", highlights: ["Троицкое предместье", "Остров слёз", "Проспект Независимости"], included: ["Транспорт", "Услуги гида"], excluded: ["Личные расходы"], galleryImageUrls: [ "https://picsum.photos/seed/minsk-cityscape/800/600" ]},
-        { name: "Брест и Брестская крепость-герой", description: "Посетите легендарную Брестскую крепость, символ стойкости и мужества, и познакомьтесь с городом Брестом.", type: "военно-исторический", priceRange: "160 BYN", bookingLink: "#", relevanceScore: 96, duration: "Целый день", groupSize: "до 45 чел.", highlights: ["Мемориальный комплекс «Брестская крепость-герой»", "Музей обороны", "Пешеходная улица Советская"], included: ["Транспорт", "Услуги гида"], excluded: ["Входные билеты в музеи", "Обед"], galleryImageUrls: [ "https://picsum.photos/seed/brest-fortress/800/600" ]}
+    const baseMockTourData: (AiTourRecommendationsOutput[0] & { location: string })[] = [
+        { name: "Замки Мира и Несвижа", location: "Гродно", description: "Посетите два самых известных замка Беларуси, внесенных в список Всемирного наследия ЮНЕСКО.", type: "культурно-исторический", priceRange: "150 BYN", bookingLink: "#", relevanceScore: 98, duration: "Целый день", groupSize: "до 40 чел.", highlights: ["Мирский замок", "Несвижский дворцово-парковый комплекс", "Фарный костел в Несвиже"], included: ["Транспорт", "Услуги гида"], excluded: ["Входные билеты", "Обед"], galleryImageUrls: [ "https://picsum.photos/seed/mir-castle/800/600" ] },
+        { name: "Беловежская пуща и Поместье Деда Мороза", location: "Брест", description: "Откройте для себя древнейший лес Европы, увидьте могучих зубров и загляните в гости к белорусскому Деду Морозу.", type: "природа", priceRange: "180 BYN", bookingLink: "#", relevanceScore: 95, duration: "Целый день", groupSize: "до 45 чел.", highlights: ["Вольеры с дикими животными", "Музей природы", "Поместье Деда Мороза"], included: ["Транспорт", "Услуги гида", "Входные билеты в поместье"], excluded: ["Обед", "Билеты в Музей природы"], galleryImageUrls: [ "https://picsum.photos/seed/belovezha/800/600" ]},
+        { name: "Обзорная экскурсия по Минску", location: "Минск", description: "Познакомьтесь с главным городом Беларуси: от старинного Троицкого предместья до современных проспектов.", type: "обзорная", priceRange: "70 BYN", bookingLink: "#", relevanceScore: 93, duration: "4 часа", groupSize: "до 40 чел.", highlights: ["Троицкое предместье", "Остров слёз", "Проспект Независимости"], included: ["Транспорт", "Услуги гида"], excluded: ["Личные расходы"], galleryImageUrls: [ "https://picsum.photos/seed/minsk-cityscape/800/600" ]},
+        { name: "Брест и Брестская крепость-герой", location: "Брест", description: "Посетите легендарную Брестскую крепость, символ стойкости и мужества, и познакомьтесь с городом Брестом.", type: "военно-исторический", priceRange: "160 BYN", bookingLink: "#", relevanceScore: 96, duration: "Целый день", groupSize: "до 45 чел.", highlights: ["Мемориальный комплекс «Брестская крепость-герой»", "Музей обороны", "Пешеходная улица Советская"], included: ["Транспорт", "Услуги гида"], excluded: ["Входные билеты в музеи", "Обед"], galleryImageUrls: [ "https://picsum.photos/seed/brest-fortress/800/600" ]}
     ];
-    const popularTours = baseMockTourData.slice(0, 4).map((tour, index) => ({ ...tour, slug: generateSlug(tour.name, index) }));
-    
-    // Housing
-    type HousingRecommendationWithSlug = AiHousingRecommendationsOutput['recommendations'][0] & { slug: string };
-    const baseMockHousingData: AiHousingRecommendationsOutput = { recommendations: [ { name: "Гранд-отель «Европа»", type: "Отель", location: "Санкт-Петербург, Россия", description: "Исторический пятизвездочный отель в самом центре города с роскошными номерами и безупречным сервисом.", priceEstimate: "от 400 BYN", rating: 5.0, pros: ["Идеальное расположение", "Историческая атмосфера", "Высококлассный сервис"], cons: ["Высокая цена"], imageUrl: "https://picsum.photos/seed/grandhotel/800/600", }, { name: "Апартаменты «Москва-Сити»", type: "Апартаменты", location: "Москва, Россия", description: "Современные апартаменты с панорамным видом на город в одной из башен комплекса «Москва-Сити».", priceEstimate: "от 300 BYN", rating: 4.8, pros: ["Панорамный вид", "Современный дизайн"], cons: ["Может быть шумно"], imageUrl: "https://picsum.photos/seed/moscowcity/800/600", }, { name: "Бутик-отель «Библиотека»", type: "Бутик-отель", location: "Вологда, Россия", description: "Уютный и тихий отель с уникальным дизайном, посвященным книгам и литературе. Идеально для спокойного отдыха.", priceEstimate: "от 180 BYN", rating: 4.9, pros: ["Уникальная концепция", "Тихое место"], cons: ["Небольшой номерной фонд"], imageUrl: "https://picsum.photos/seed/libraryhotel/800/600", }, { name: "Эко-отель «Роза Хутор»", type: "Отель", location: "Сочи, Россия", description: "Отель в горах с прекрасным видом, окруженный природой. Идеально для любителей активного отдыха.", priceEstimate: "от 250 BYN", rating: 4.7, pros: ["Горный воздух", "Доступ к подъемникам"], cons: ["Удаленность от моря"], imageUrl: "https://picsum.photos/seed/rosakhutor/800/600", } ], };
-    const popularHousing = baseMockHousingData.recommendations.slice(0, 4).map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
-    
-    // Restaurants
-    type RestaurantRecommendationWithSlug = (AiRestaurantRecommendationsOutput['recommendations'][0] & { slug: string });
-    const baseMockRestaurantData: AiRestaurantRecommendationsOutput = { recommendations: [ { name: "White Rabbit", cuisine: "Современная русская", location: "Смоленская пл., 3, Москва", description: "Панорамный ресторан с видом на Москву, известный своей инновационной русской кухней.", price: "от 250 BYN", rating: 4.8, specialty: "Борщ с жареными карасями", imageUrl: "https://picsum.photos/seed/whiterabbit/800/600" }, { name: "Probka на Цветном", cuisine: "Итальянская", location: "Цветной б-р, 2, Москва", description: "Уютный итальянский ресторан от Арама Мнацаканова с аутентичной кухней и отличной винной картой.", price: "от 150 BYN", rating: 4.7, specialty: "Пицца с трюфелем", imageUrl: "https://picsum.photos/seed/probka/800/600" }, { name: "Кафе Пушкинъ", cuisine: "Русская дворянская", location: "Тверской б-р, 26А, Москва", description: "Легендарный ресторан-аптека с атмосферой XIX века и классической русской кухней.", price: "от 200 BYN", rating: 4.6, specialty: "Пожарская котлета", imageUrl: "https://picsum.photos/seed/pushkin/800/600" }, { name: "Горыныч", cuisine: "Гриль", location: "Рождественский б-р, 1, Москва", description: "Ресторан с огромными печами, где готовят блюда на огне. Отличные завтраки и хлеб.", price: "от 120 BYN", rating: 4.7, specialty: "Стейки и неаполитанская пицца", imageUrl: "https://picsum.photos/seed/gorynych/800/600" } ], };
-    const popularRestaurants = baseMockRestaurantData.recommendations.slice(0, 4).map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
 
-    // Activities
-    type ActivityRecommendationWithSlug = AiActivityRecommendationsOutput['recommendations'][0] & { slug: string };
-    const baseMockActivityData: AiActivityRecommendationsOutput = { recommendations: [ { name: "VR-арена Warpoint", type: "VR-арена", description: "Командный VR-шутер на большой арене. Почувствуй себя героем боевика!", price: "от 30 BYN/час", location: "пр-т Победителей, 9, Минск", rating: 4.9, imageUrl: "https://picsum.photos/seed/vr-warpoint/800/600" }, { name: "Квест «Пила»", type: "Квест", description: "Хоррор-квест по мотивам знаменитого фильма. Сможете ли вы выбраться из ловушки Конструктора?", price: "от 100 BYN за команду", location: "ул. Куйбышева, 22, Минск", rating: 4.8, imageUrl: "https://picsum.photos/seed/saw-quest/800/600" }, { name: "Боулинг-клуб Madison", type: "Боулинг", description: "Современный боулинг-центр с 12 дорожками, баром и рестораном. Отличное место для компании.", price: "от 45 BYN/час", location: "ул. Тимирязева, 9, Минск", rating: 4.6, imageUrl: "https://picsum.photos/seed/bowling-madison/800/600" }, { name: "Картинг-центр «Форсаж»", type: "Картинг", description: "Одна из лучших крытых картинг-трасс в Минске. Скорость, адреналин и дух соперничества.", price: "от 35 BYN за заезд", location: "пр-т Дзержинского, 91, Минск", rating: 4.7, imageUrl: "https://picsum.photos/seed/karting-forsazh/800/600" }, ], };
-    const popularActivities = baseMockActivityData.recommendations.slice(0, 4).map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
+    const popularTours = useMemo(() => {
+        const toursWithSlugs = baseMockTourData.map((tour, index) => ({ ...tour, slug: generateSlug(tour.name, index) }));
+        if (selectedCity === 'Все города') return toursWithSlugs;
+        return toursWithSlugs.filter(tour => tour.location && tour.location.includes(selectedCity));
+    }, [selectedCity]);
+
+    const baseMockHousingData: AiHousingRecommendationsOutput = { recommendations: [ { name: "Отель 'Минск'", type: "Отель", location: "Минск", description: "Комфортабельный отель в центре города.", priceEstimate: "от 250 BYN", rating: 4.5, pros: ["Центр города", "Хороший сервис"], cons: ["Может быть шумно"], imageUrl: "https://picsum.photos/seed/minsk-hotel/800/600", }, { name: "Апартаменты 'Немига'", type: "Апартаменты", location: "Минск", description: "Стильные апартаменты на главной туристической улице.", priceEstimate: "от 300 BYN", rating: 4.8, pros: ["Отличное расположение", "Современный ремонт"], cons: ["Высокий спрос"], imageUrl: "https://picsum.photos/seed/nemiga-apts/800/600", }, { name: "Гостиница 'Беларусь'", type: "Гостиница", location: "Минск", description: "Один из символов города с панорамным лифтом и видом на реку.", priceEstimate: "от 180 BYN", rating: 4.3, pros: ["Панорамный вид", "Бассейн"], cons: ["Требуется частичная реновация"], imageUrl: "https://picsum.photos/seed/belarus-hotel/800/600", }, { name: "Брестский форт", type: "Отель", location: "Брест", description: "Отель в историческом стиле недалеко от Брестской крепости.", priceEstimate: "от 220 BYN", rating: 4.6, pros: ["Атмосфера", "Близость к крепости"], cons: ["Небольшой номерной фонд"], imageUrl: "https://picsum.photos/seed/brest-fort/800/600", } ], };
+    const popularHousing = useMemo(() => {
+        const housingWithSlugs = baseMockHousingData.recommendations.map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
+        if (selectedCity === 'Все города') return housingWithSlugs;
+        return housingWithSlugs.filter(h => h.location && h.location.includes(selectedCity));
+    }, [selectedCity]);
+
+    const baseMockRestaurantData: AiRestaurantRecommendationsOutput = { recommendations: [ { name: "Ресторан 'Васильки'", cuisine: "Белорусская", location: "Минск", description: "Сеть ресторанов с традиционной белорусской кухней и уютным интерьером.", price: "от 50 BYN", rating: 4.6, specialty: "Драники", imageUrl: "https://picsum.photos/seed/vasilki/800/600" }, { name: "Кафе 'Грюнвальд'", cuisine: "Европейская", location: "Минск", description: "Историческое кафе в центре города с классическим интерьером.", price: "от 70 BYN", rating: 4.5, specialty: "Венский шницель", imageUrl: "https://picsum.photos/seed/grunwald/800/600" }, { name: "'Журавiнка'", cuisine: "Русская, Европейская", location: "Брест", description: "Ресторан с видом на реку и живой музыкой по вечерам.", price: "от 80 BYN", rating: 4.7, specialty: "Блюда из дичи", imageUrl: "https://picsum.photos/seed/zhuravinka/800/600" } ], };
+    const popularRestaurants = useMemo(() => {
+        const restaurantWithSlugs = baseMockRestaurantData.recommendations.map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
+        if (selectedCity === 'Все города') return restaurantWithSlugs;
+        return restaurantWithSlugs.filter(r => r.location && r.location.includes(selectedCity));
+    }, [selectedCity]);
+
+    const baseMockActivityData: AiActivityRecommendationsOutput = { recommendations: [ { name: "Посещение Национальной библиотеки", type: "Достопримечательность", description: "Поднимитесь на смотровую площадку и насладитесь панорамным видом на Минск.", price: "10 BYN", location: "Минск", rating: 4.7, imageUrl: "https://picsum.photos/seed/library-minsk/800/600" }, { name: "Прогулка по Троицкому предместью", type: "Прогулка", description: "Исторический квартал Минска с живописными улочками и кафе.", price: "Бесплатно", location: "Минск", rating: 4.8, imageUrl: "https://picsum.photos/seed/troitskoe/800/600" }, { name: "Музей '5 элемент'", type: "Музей", description: "Интерактивный музей науки для детей и взрослых.", price: "25 BYN", location: "Минск", rating: 4.9, imageUrl: "https://picsum.photos/seed/5element/800/600" }, { name: "Посещение Брестской крепости", type: "Мемориал", description: "Легендарный мемориальный комплекс, символ стойкости и мужества.", price: "Бесплатно (музеи за доп. плату)", location: "Брест", rating: 4.9, imageUrl: "https://picsum.photos/seed/brest-memorial/800/600" } ], };
+    const popularActivities = useMemo(() => {
+        const activityWithSlugs = baseMockActivityData.recommendations.map((rec, index) => ({ ...rec, slug: generateSlug(rec.name, index) }));
+        if (selectedCity === 'Все города') return activityWithSlugs;
+        return activityWithSlugs.filter(a => a.location && a.location.includes(selectedCity));
+    }, [selectedCity]);
     
-    // Rental Cars
-    type CarRecommendationWithSlug = AiRentalCarRecommendationsOutput['recommendations'][0] & { slug: string };
     const baseMockCarData: AiRentalCarRecommendationsOutput = { recommendations: [ { name: "Kia Rio", type: "Эконом", supplier: "Local Rent", price: "90 BYN", rating: 4.5, features: { passengers: 5, luggage: 2, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/kiario/800/600" }, { name: "Toyota Camry", type: "Седан", supplier: "Hertz", price: "150 BYN", rating: 4.8, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/camry/800/600" }, { name: "Renault Duster", type: "SUV", supplier: "Avis", price: "120 BYN", rating: 4.7, features: { passengers: 5, luggage: 4, transmission: "Механика", doors: 4 }, imageUrl: "https://picsum.photos/seed/duster/800/600" }, { name: "BMW 5 Series", type: "Премиум", supplier: "Sixt", price: "300 BYN", rating: 4.9, features: { passengers: 5, luggage: 3, transmission: "Автомат", doors: 4 }, imageUrl: "https://picsum.photos/seed/bmw5/800/600" }, ], };
-    const popularCars = baseMockCarData.recommendations.slice(0, 4).map((car, index) => ({ ...car, slug: generateSlug(car.name, index) }));
+    const popularCars = baseMockCarData.recommendations.map((car, index) => ({ ...car, slug: generateSlug(car.name, index) }));
 
     return (
         <>
@@ -226,12 +254,39 @@ export default function MyRoutesPageContent() {
                 </div>
             </section>
             
+            <div className="container mx-auto px-4 -mt-12 relative z-20">
+                <div className="bg-background rounded-2xl shadow-xl p-4 flex flex-wrap items-center justify-center gap-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-base font-medium text-muted-foreground">Город:</span>
+                        {activeTab !== 'rental-car' && (
+                             <Select value={selectedCity} onValueChange={setSelectedCity}>
+                                <SelectTrigger className="w-auto md:w-[240px] text-base font-semibold bg-input border-0 focus:ring-2 focus:ring-primary h-11">
+                                    <MapPin className="mr-2 h-5 w-5 text-muted-foreground" />
+                                    <SelectValue placeholder="Выберите город" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {cityList.map(city => (
+                                        <SelectItem key={city} value={city} className="text-base">{city}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                         <Button onClick={handleDetectCity} disabled={isLocating} variant="outline" className="h-11 text-base">
+                            {isLocating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LocateIcon className="mr-2 h-5 w-5" />}
+                            {isLocating ? 'Определение...' : 'Мой город'}
+                        </Button>
+                    </div>
+                    {locationError && <div className="text-sm text-destructive font-medium">{locationError}</div>}
+                </div>
+            </div>
+
             <section className="py-16 lg:py-24">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярное</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">Популярное в г. {selectedCity === 'Все города' ? 'Беларуси' : selectedCity}</h2>
                         <p className="text-lg text-muted-foreground">Ознакомьтесь с нашими лучшими предложениями в различных категориях.</p>
                     </div>
+
                     <div className="flex justify-center mb-12">
                         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4">
                            {categories.map(({ key, label, icon: Icon }) => {
@@ -242,7 +297,7 @@ export default function MyRoutesPageContent() {
                                         onClick={() => setActiveTab(key)}
                                         className={cn('category-btn flex items-center gap-2 px-6 py-3 rounded-2xl font-medium whitespace-nowrap', {
                                             'active text-white': isActive,
-                                            'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200': !isActive,
+                                            'bg-background text-foreground hover:bg-muted/50 border': !isActive,
                                         })}
                                     >
                                         <Icon className="w-5 h-5" />
@@ -255,114 +310,138 @@ export default function MyRoutesPageContent() {
                     <div>
                         {activeTab === 'tours' && (
                             <div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {popularTours.map((tour, index) => (
-                                        <Link href={`/tours/${tour.slug}`} key={index} className="group flex flex-col">
-                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                                <Image
-                                                    src={tour.galleryImageUrls[0]}
-                                                    alt={tour.name}
-                                                    width={600}
-                                                    height={400}
-                                                    className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
-                                                    data-ai-hint={tour.type}
-                                                />
-                                                <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
-                                                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                    <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
+                                {popularTours.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {popularTours.map((tour, index) => (
+                                            <Link href={`/tours/${tour.slug}`} key={index} className="group flex flex-col">
+                                                <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                    <Image
+                                                        src={tour.galleryImageUrls[0]}
+                                                        alt={tour.name}
+                                                        width={600}
+                                                        height={400}
+                                                        className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                                                        data-ai-hint={tour.type}
+                                                    />
+                                                    <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
+                                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                        <span>{(tour.relevanceScore / 20).toFixed(1)}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="pt-4">
-                                                <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{tour.name}</h3>
-                                                <div className="flex justify-between items-center">
-                                                    <p className="text-lg font-bold text-foreground">{tour.priceRange}</p>
-                                                    <div className="text-sm text-muted-foreground">{tour.duration}</div>
+                                                <div className="pt-4">
+                                                    <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{tour.name}</h3>
+                                                    <div className="flex justify-between items-center">
+                                                        <p className="text-lg font-bold text-foreground">{tour.priceRange}</p>
+                                                        <div className="text-sm text-muted-foreground">{tour.duration}</div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <p className="text-lg text-muted-foreground">К сожалению, в этом городе туров не найдено.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'housing' && (
-                            <div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {popularHousing.map((rec, index) => (
-                                        <Link href={`/housing/${rec.slug}`} key={index} className="group flex flex-col">
-                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                                {rec.rating && rec.rating >= 4.8 && (
-                                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
-                                                        <Award className="w-4 h-4" />
-                                                        <span>Лучший выбор</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="pt-4">
-                                                <div className="flex justify-between items-start">
-                                                    <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                                    {rec.rating && (
-                                                        <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>{rec.rating.toFixed(1)}</span>
+                             <div>
+                                {popularHousing.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {popularHousing.map((rec, index) => (
+                                            <Link href={`/housing/${rec.slug}`} key={index} className="group flex flex-col">
+                                                <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                    <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                                    {rec.rating && rec.rating >= 4.8 && (
+                                                        <div className="absolute top-3 left-3 flex items-center gap-1.5 text-sm font-bold text-white bg-primary px-2 py-1 rounded">
+                                                            <Award className="w-4 h-4" />
+                                                            <span>Лучший выбор</span>
                                                         </div>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mb-2">{rec.location}</p>
-                                                <p className="text-lg font-bold text-foreground">{rec.priceEstimate} <span className="text-sm font-normal text-muted-foreground">/ ночь</span></p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                                <div className="pt-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                        {rec.rating && (
+                                                            <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
+                                                                <Star className="w-4 h-4 fill-current" />
+                                                                <span>{rec.rating.toFixed(1)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mb-2">{rec.location}</p>
+                                                    <p className="text-lg font-bold text-foreground">{rec.priceEstimate} <span className="text-sm font-normal text-muted-foreground">/ ночь</span></p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <p className="text-lg text-muted-foreground">К сожалению, в этом городе жилья не найдено.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'restaurants' && (
                              <div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {popularRestaurants.map((rec, index) => (
-                                        <Link href={`/restaurants/${rec.slug}`} key={index} className="group flex flex-col">
-                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                            </div>
-                                            <div className="pt-4">
-                                                <div className="flex justify-between items-start">
-                                                    <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                                    {rec.rating && (
-                                                        <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>{rec.rating.toFixed(1)}</span>
-                                                        </div>
-                                                    )}
+                                {popularRestaurants.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {popularRestaurants.map((rec, index) => (
+                                            <Link href={`/restaurants/${rec.slug}`} key={index} className="group flex flex-col">
+                                                <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                    <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{rec.cuisine} • {rec.price}</p>
-                                            </div>
-                                        </Link>
-                                ))}
-                                </div>
+                                                <div className="pt-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className="font-bold font-headline text-xl mb-1 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                        {rec.rating && (
+                                                            <div className="flex items-center gap-1 text-sm font-bold text-amber-500 shrink-0">
+                                                                <Star className="w-4 h-4 fill-current" />
+                                                                <span>{rec.rating.toFixed(1)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{rec.cuisine} • {rec.price}</p>
+                                                </div>
+                                            </Link>
+                                    ))}
+                                    </div>
+                                 ) : (
+                                    <div className="text-center py-12">
+                                        <p className="text-lg text-muted-foreground">К сожалению, в этом городе ресторанов не найдено.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'activities' && (
                             <div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {popularActivities.map((rec, index) => (
-                                        <Link href={`/activities/${rec.slug}`} key={index} className="group flex flex-col">
-                                            <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-                                                <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
-                                                {rec.rating && (
-                                                    <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
-                                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                        <span>{rec.rating.toFixed(1)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="pt-4">
-                                                <p className="text-sm text-muted-foreground">{rec.type}</p>
-                                                <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
-                                                <p className="text-lg font-bold text-foreground">{rec.price}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                {popularActivities.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {popularActivities.map((rec, index) => (
+                                            <Link href={`/activities/${rec.slug}`} key={index} className="group flex flex-col">
+                                                <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                                                    <Image src={rec.imageUrl || ''} alt={rec.name} width={600} height={400} className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform" />
+                                                    {rec.rating && (
+                                                        <div className="absolute top-4 right-4 flex items-center gap-1 text-sm font-bold text-white bg-black/50 px-2 py-1 rounded-md">
+                                                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                            <span>{rec.rating.toFixed(1)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="pt-4">
+                                                    <p className="text-sm text-muted-foreground">{rec.type}</p>
+                                                    <h3 className="font-bold font-headline text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{rec.name}</h3>
+                                                    <p className="text-lg font-bold text-foreground">{rec.price}</p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <p className="text-lg text-muted-foreground">К сожалению, в этом городе развлечений не найдено.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'rental-car' && (

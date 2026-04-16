@@ -40,6 +40,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Link href="/routes" className="text-xl font-medium text-muted-foreground transition-colors hover:text-foreground">
                   Маршруты
                 </Link>
+                <Link href="/routes1" className="text-xl font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  Маршруты1
+                </Link>
                 <Link href="/tours" className="text-xl font-medium text-muted-foreground transition-colors hover:text-foreground">
                   Туры
                 </Link>
@@ -100,6 +103,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <div className="flex-1 overflow-y-auto pt-4">
                       <nav className="grid gap-4 text-base font-medium">
                         <SheetClose asChild><Link href="/routes" className="text-muted-foreground hover:text-foreground">Маршруты</Link></SheetClose>
+                        <SheetClose asChild><Link href="/routes1" className="text-muted-foreground hover:text-foreground">Маршруты1</Link></SheetClose>
                         <SheetClose asChild><Link href="/tours" className="text-muted-foreground hover:text-foreground">Туры</Link></SheetClose>
                         <SheetClose asChild><Link href="/housing" className="text-muted-foreground hover:text-foreground">Жилье</Link></SheetClose>
                         <SheetClose asChild><Link href="/restaurants" className="text-muted-foreground hover:text-foreground">Рестораны</Link></SheetClose>

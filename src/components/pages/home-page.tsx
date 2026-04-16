@@ -9,7 +9,6 @@ import { ru } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from "react";
-import { routes as mockRoutes } from '@/lib/data';
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -17,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -29,6 +27,7 @@ import type { AiHousingRecommendationsOutput } from "@/ai/flows/ai-housing-recom
 import type { AiRestaurantRecommendationsOutput } from "@/ai/flows/ai-restaurant-recommendations";
 import type { AiActivityRecommendationsOutput } from "@/ai/flows/ai-activity-recommendations";
 import type { AiRentalCarRecommendationsOutput } from "@/ai/flows/ai-rental-car-recommendations";
+import CreateRouteBanner from "@/components/create-route-banner";
 
 const searchSchema = z.object({
   destination: z.string().min(1, { message: "Обязательное поле" }),
@@ -67,62 +66,9 @@ function SubscriptionDialog() {
     );
 }
 
-// This is the component for displaying existing routes.
-function MyRoutes() {
-  return (
-    <section className="py-16 lg:py-24">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
-          <div className="space-y-2">
-            <h2 className="text-4xl md:text-5xl font-bold font-headline">Мои маршруты</h2>
-            <p className="text-lg text-muted-foreground">Здесь собраны все ваши запланированные путешествия.</p>
-          </div>
-          <Button asChild size="lg" className="w-full md:w-auto shrink-0">
-            <Link href="/routes/new">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Создать маршрут
-            </Link>
-          </Button>
-        </div>
-        {mockRoutes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockRoutes.map(route => (
-              <Link href={`/routes/${route.id}`} key={route.id} className="group">
-                <Card className="h-full flex flex-col overflow-hidden shadow-md hover:shadow-xl hover:border-primary/50 transition-all duration-300">
-                  <CardHeader>
-                    <CardTitle className="font-headline group-hover:text-primary transition-colors">{route.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" /> {route.destination}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground">
-                      Маршрут из {route.places.length} точек.
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <div className="flex items-center text-sm text-muted-foreground gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(route.startDate).toLocaleDateString('ru-RU')} - {new Date(route.endDate).toLocaleDateString('ru-RU')}</span>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 border-2 border-dashed rounded-2xl bg-secondary/50">
-            <p className="text-muted-foreground">У вас пока нет маршрутов.</p>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
-
-export default function MyRoutesPageContent() {
+export default function HomePageContent() {
     const router = useRouter();
-    const heroImage = PlaceHolderImages.find(img => img.id === 'hero-banner-kayleen');
+    const heroImage = PlaceHolderImages.find(img => img.id === 'why-choose-us');
     const whyUsImage = PlaceHolderImages.find(img => img.id === 'why-choose-us');
     const [activeTab, setActiveTab] = useState('tours');
 
@@ -281,7 +227,7 @@ export default function MyRoutesPageContent() {
                 </div>
             </section>
             
-            <MyRoutes />
+            <CreateRouteBanner />
 
             <section className="py-16 lg:py-24">
                 <div className="container mx-auto px-4">

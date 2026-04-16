@@ -2,7 +2,6 @@
 import { Bell, PackageCheck, Heart, AlertTriangle, User, Briefcase } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUser } from '@/firebase';
 
 const NotificationItem = ({ icon, title, description, time, read = false }: any) => (
     <div className={`flex items-start gap-4 p-4 rounded-lg transition-colors ${!read ? 'bg-secondary' : 'hover:bg-muted/50'}`}>
@@ -21,8 +20,7 @@ const NotificationItem = ({ icon, title, description, time, read = false }: any)
 );
 
 export default function NotificationsPage() {
-    const { user } = useUser();
-    const isDemo = !user;
+    const isDemo = true;
 
     const demoNotifications = {
         all: [

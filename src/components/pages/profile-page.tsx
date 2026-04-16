@@ -1,13 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { useUser } from '@/firebase';
-import { useUserProfile } from '@/firebase/auth/use-user-profile';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { User as UserIcon, Edit, Loader2, Briefcase, Heart, ShoppingCart, Plane, Building, UserCog, Building2, Sparkles, Palette, PlusCircle } from "lucide-react";
 import { AuthDialog } from '../auth-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -173,12 +170,9 @@ const BusinessProfileView = ({ user, interests }: { user: any, interests: string
 
 
 export default function ProfilePageContent() {
-  const { user, isLoading: isUserLoading } = useUser();
-  const { userProfile, isLoading: isProfileLoading } = useUserProfile();
   const [demoType, setDemoType] = useState<'traveler' | 'business'>('traveler');
   
-  const isLoading = isUserLoading || isProfileLoading;
-  const isDemo = !user;
+  const isDemo = true;
   
   const demoUsers = {
       traveler: {
@@ -199,17 +193,9 @@ export default function ProfilePageContent() {
       }
   };
 
-  if (isLoading) {
-    return (
-        <div className="container mx-auto max-w-5xl py-8 flex justify-center items-center h-96">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-    );
-  }
-  
-  const currentUser = isDemo ? demoUsers[demoType] : { ...user, ...(userProfile || {}) };
-  const isBusinessOwner = isDemo ? demoType === 'business' : currentUser?.isBusinessOwner;
-  const interests = isDemo ? demoUsers[demoType].interests : (currentUser as any)?.interests || [];
+  const currentUser = demoUsers[demoType];
+  const isBusinessOwner = demoType === 'business';
+  const interests = demoUsers[demoType].interests;
   
 
   return (

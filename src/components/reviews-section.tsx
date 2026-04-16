@@ -7,7 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { Star, User } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useUser } from '@/firebase';
 import { AuthDialog } from './auth-dialog';
 
 // Mock data for reviews
@@ -45,59 +44,14 @@ function StarRatingInput({ rating, setRating }: { rating: number, setRating: (r:
 }
 
 function ReviewForm() {
-    const { user, isLoading } = useUser();
-    const [rating, setRating] = useState(0);
-    const [reviewText, setReviewText] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!reviewText || rating === 0) return;
-        setIsSubmitting(true);
-        // Mock submission
-        setTimeout(() => {
-            console.log({ rating, reviewText });
-            setRating(0);
-            setReviewText('');
-            setIsSubmitting(false);
-        }, 1000);
-    };
-
-    if (isLoading) {
-        return <div>Загрузка...</div>;
-    }
-    
-    if (!user) {
-        return (
-            <div className="text-center p-6 border rounded-lg">
-                <p className="mb-4">Чтобы оставить отзыв, пожалуйста, войдите в свой аккаунт.</p>
-                <AuthDialog>
-                    <Button>Войти или зарегистрироваться</Button>
-                </AuthDialog>
-            </div>
-        )
-    }
-
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-             <div>
-                <p className="font-medium mb-2">Ваша оценка</p>
-                <StarRatingInput rating={rating} setRating={setRating} />
-            </div>
-            <div>
-                <p className="font-medium mb-2">Ваш отзыв</p>
-                <Textarea
-                    placeholder="Поделитесь своими впечатлениями..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    rows={4}
-                />
-            </div>
-            <Button type="submit" disabled={isSubmitting || !reviewText || rating === 0}>
-                {isSubmitting ? 'Отправка...' : 'Отправить отзыв'}
-            </Button>
-        </form>
-    );
+        <div className="text-center p-6 border rounded-lg">
+            <p className="mb-4">Чтобы оставить отзыв, пожалуйста, войдите в свой аккаунт.</p>
+            <AuthDialog>
+                <Button>Войти или зарегистрироваться</Button>
+            </AuthDialog>
+        </div>
+    )
 }
 
 

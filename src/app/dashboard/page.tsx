@@ -1,6 +1,5 @@
 'use client';
 
-import { useUser } from '@/firebase';
 import { Loader2, PlusCircle, Building, BarChart2, MessageSquare, AlertTriangle, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,13 +18,10 @@ interface Business {
 }
 
 export default function DashboardPage() {
-    const { user, isLoading: isUserLoading } = useUser();
-    
-    // TODO: Fetch real businesses associated with the user
     const userBusinesses: Business[] = []; 
-    const isLoading = isUserLoading; // Add other loading states if needed
+    const isLoading = false;
 
-    const isDemo = !user || userBusinesses.length === 0;
+    const isDemo = true;
 
     const mockBusinesses: Business[] = [
         {

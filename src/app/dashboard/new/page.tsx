@@ -20,9 +20,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from '@/firebase';
-import { addDoc, collection } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
 import { Loader2 } from "lucide-react";
 
 const businessFormSchema = z.object({
@@ -46,8 +43,6 @@ const categoryLabels = {
 export default function NewBusinessPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useUser();
-  const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<BusinessFormValues>({
@@ -61,35 +56,10 @@ export default function NewBusinessPage() {
   });
 
   async function onSubmit(data: BusinessFormValues) {
-    if (!user) {
-        toast({
-            title: "Ошибка",
-            description: "Вы должны быть авторизованы, чтобы добавлять бизнес.",
-            variant: "destructive"
-        });
-        return;
-    }
-    setIsLoading(true);
-    try {
-        await addDoc(collection(firestore, "businesses"), {
-            ...data,
-            ownerId: user.uid,
-        });
-        toast({
-            title: "Бизнес добавлен!",
-            description: `Ваше предложение "${data.name}" было успешно создано.`,
-        });
-        router.push("/dashboard");
-    } catch(error) {
-        console.error("Error adding document: ", error);
-        toast({
-            title: "Ошибка",
-            description: "Не удалось добавить бизнес. Попробуйте еще раз.",
-            variant: "destructive"
-        });
-    } finally {
-        setIsLoading(false);
-    }
+    toast({
+        title: "Функция в разработке",
+        description: "Эта форма пока не работает.",
+    });
   }
 
   return (

@@ -229,7 +229,7 @@ const ResultCard = ({ item, onSelect, isSelected, disabled }: { item: any, onSel
                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1"><Icons.MapPin /> {item.location || (item.coords ? 'Город' : '—')}</div>
                 <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1 text-amber-500"><Icons.Star /><span className="text-gray-700">{item.rating}</span></div>
-                    <div><span className="font-bold text-indigo-600">{item.price.toLocaleString()} ₽</span>{item.category === 'accommodation' && <span className="text-xs text-gray-400">/ночь</span>}</div>
+                    <div><span className="font-bold text-indigo-600">{item.price.toLocaleString('ru-RU')} ₽</span>{item.category === 'accommodation' && <span className="text-xs text-gray-400">/ночь</span>}</div>
                 </div>
             </div>
         </div>
@@ -430,7 +430,7 @@ export default function Routes1Page() {
                                                 {field.type === 'range' ? (
                                                     <div>
                                                         <input type="range" min={field.min} max={field.max} step={500} value={activeFilters[cat]?.[field.key] || field.max} onChange={e => setActiveFilters(prev => ({ ...prev, [cat]: { ...prev[cat], [field.key]: parseInt(e.target.value) } }))} className="range-slider mt-1" />
-                                                        <div className="flex justify-between text-xs text-gray-500"><span>{field.min} ₽</span><span>до {(activeFilters[cat]?.[field.key] || field.max).toLocaleString()} ₽</span></div>
+                                                        <div className="flex justify-between text-xs text-gray-500"><span>{field.min} ₽</span><span>до {(activeFilters[cat]?.[field.key] || field.max).toLocaleString('ru-RU')} ₽</span></div>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-wrap gap-2 mt-1">
@@ -484,7 +484,7 @@ export default function Routes1Page() {
                                                 ))}
                                             </div>
                                             <div className="mt-3 pt-3 border-t space-y-1 text-sm">
-                                                <div className="flex justify-between"><span className="font-bold">Общая стоимость:</span><span className="font-bold">{optimizedRoute.reduce((s, p) => s + p.price, 0).toLocaleString()} ₽</span></div>
+                                                <div className="flex justify-between"><span className="font-bold">Общая стоимость:</span><span className="font-bold">{optimizedRoute.reduce((s, p) => s + p.price, 0).toLocaleString('ru-RU')} ₽</span></div>
                                                 <div className="flex justify-between"><span className="font-bold">Общее расстояние:</span><span className="font-bold">{routeStats.totalDistance} км</span></div>
                                                 <div className="flex justify-between"><span className="font-bold">Время в пути:</span><span className="font-bold">{Math.floor(routeStats.totalMinutes / 60)} ч {routeStats.totalMinutes % 60} мин</span></div>
                                                 {transportMode === 'car' && routeStats.fuel > 0 && (

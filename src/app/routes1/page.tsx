@@ -396,8 +396,8 @@ export default function Routes1Page() {
                 </header>
 
                 <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        <aside className="lg:w-80 space-y-4 flex-shrink-0">
+                    <div className="grid lg:grid-cols-3 gap-8">
+                        <aside className="lg:col-span-1 space-y-4">
                             <div className="bg-white rounded-2xl p-4 shadow-sm">
                                 <input type="text" placeholder="Поиск по названию..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full px-4 py-2 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
@@ -409,7 +409,7 @@ export default function Routes1Page() {
                                         <h3 className="font-bold mb-3">{allCategories[cat].label}</h3>
                                         {cfg.fields.map((field: any) => (
                                             <div key={field.key} className="mb-4">
-                                                <label className="text-sm font-medium text-gray-600">{field.label}</label>
+                                                <label className="text-base font-medium text-gray-600">{field.label}</label>
                                                 {field.type === 'range' ? (
                                                     <div>
                                                         <input type="range" min={field.min} max={field.max} step={500} value={activeFilters[cat]?.[field.key] || field.max} onChange={e => setActiveFilters(prev => ({ ...prev, [cat]: { ...prev[cat], [field.key]: parseInt(e.target.value) } }))} className="range-slider mt-1" />
@@ -419,7 +419,7 @@ export default function Routes1Page() {
                                                     <div className="flex flex-wrap gap-2 mt-1">
                                                         {field.options.map((opt: string) => {
                                                             const active = activeFilters[cat]?.[field.key]?.includes(opt);
-                                                            return <button key={opt} onClick={() => { const cur = activeFilters[cat]?.[field.key] || []; const upd = active ? cur.filter(o => o !== opt) : [...cur, opt]; setActiveFilters(prev => ({ ...prev, [cat]: { ...prev[cat], [field.key]: upd } })); }} className={`filter-chip px-2 py-1 rounded-full text-xs ${active ? 'active' : 'bg-gray-100'}`}>{opt}</button>;
+                                                            return <button key={opt} onClick={() => { const cur = activeFilters[cat]?.[field.key] || []; const upd = active ? cur.filter(o => o !== opt) : [...cur, opt]; setActiveFilters(prev => ({ ...prev, [cat]: { ...prev[cat], [field.key]: upd } })); }} className={`filter-chip px-3 py-1.5 rounded-full text-sm ${active ? 'active' : 'bg-gray-100'}`}>{opt}</button>;
                                                         })}
                                                     </div>
                                                 )}
@@ -431,7 +431,7 @@ export default function Routes1Page() {
                             <button onClick={() => setActiveFilters({})} className="w-full py-2 text-indigo-600 text-sm font-medium">Сбросить все фильтры</button>
                         </aside>
 
-                        <main className="flex-1 min-w-0">
+                        <main className="lg:col-span-2 min-w-0">
                             <div className="flex justify-between items-center mb-4"><span className="text-gray-600">Найдено: {filteredItems.length}</span><select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded-xl px-3 py-1 text-sm bg-white"><option value="rating">По рейтингу</option><option value="price-asc">Сначала дешевле</option><option value="price-desc">Сначала дороже</option></select></div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {filteredItems.map(item => {
@@ -441,38 +441,37 @@ export default function Routes1Page() {
                                     return <ResultCard key={item.id} item={item} onSelect={toggleRoutePoint} isSelected={isSelected} disabled={disabled} />;
                                 })}
                             </div>
-                        </main>
-
-                        <aside className="lg:w-96 space-y-4 flex-shrink-0">
-                            <div className="bg-white rounded-2xl p-4 shadow-sm sticky top-32">
+                            <div className="bg-white rounded-2xl p-4 shadow-sm mt-6">
                                 <h2 className="font-bold text-lg mb-2">Конструктор маршрута</h2>
                                 <div className="flex gap-2 mb-3">{['walk', 'transit', 'car'].map(m => <button key={m} onClick={() => setTransportMode(m)} className={`transport-mode flex-1 py-1 text-sm rounded-full border flex items-center justify-center gap-1.5 transition-colors ${transportMode === m ? 'active' : 'hover:bg-gray-100'}`}>{m === 'walk' ? <><Icons.Walk />Пешком</> : m === 'transit' ? <><Icons.Bus />Транспорт</> : <><Icons.Car />Авто</>}</button>)}</div>
                                 <button onClick={buildRoute} disabled={totalSelectedCount < 2} className={`w-full py-2 rounded-xl font-semibold text-white transition-colors ${totalSelectedCount < 2 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-lg'}`}>Построить маршрут</button>
                                 <div className="mt-3 text-sm text-gray-500">Выбрано: {totalSelectedCount} (Жильё: {selectedRoutePoints.accommodation.length}/{allCategories.accommodation.maxSelect}, Кафе: {selectedRoutePoints.cafes.length}/{allCategories.cafes.maxSelect}, Развлечения: {selectedRoutePoints.entertainment.length}/{allCategories.entertainment.maxSelect})</div>
 
                                 {showRoute && optimizedRoute.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t">
-                                        {days.length > 1 && <div className="flex gap-2 overflow-x-auto mb-2"><button onClick={() => setActiveDay(null)} className={`day-tab text-xs px-3 py-1 rounded-lg ${activeDay === null ? 'active' : ''}`}>Все дни</button>{days.map((_, idx) => <button key={idx} onClick={() => setActiveDay(idx)} className={`day-tab text-xs px-3 py-1 rounded-lg ${activeDay === idx ? 'active' : ''}`}>День {idx + 1}</button>)}</div>}
-                                        <div className="bg-gray-100 rounded-xl p-1 mb-2 h-64"><DynamicRouteMap route={optimizedRoute} activeDay={activeDay} cityCenter={cityCenter} /></div>
-                                        <h3 className="font-bold mb-2">{activeDay !== null ? `День ${activeDay + 1}` : 'Весь маршрут'}</h3>
-                                        <div className="space-y-2 max-h-72 overflow-auto pr-2">
-                                            {(activeDay !== null ? days[activeDay] : optimizedRoute).map((p, idx) => (
-                                                <div key={p.id} className="route-point" data-index={idx + 1}>
-                                                    <div className="bg-gray-50 p-2 rounded-lg text-sm">
-                                                        <div className="flex justify-between items-start">
-                                                            <span className="font-medium pr-2">{p.title}</span>
-                                                            <button onClick={() => removeFromRoute(p)} className="text-red-400 hover:text-red-600 flex-shrink-0"><Icons.Trash /></button>
+                                     <div className="mt-4 pt-4 border-t">
+                                        <div className="bg-gray-100 rounded-xl p-1 h-96 mb-4"><DynamicRouteMap route={optimizedRoute} activeDay={activeDay} cityCenter={cityCenter} /></div>
+                                        <div>
+                                            {days.length > 1 && <div className="flex gap-2 overflow-x-auto mb-2"><button onClick={() => setActiveDay(null)} className={`day-tab text-xs px-3 py-1 rounded-lg ${activeDay === null ? 'active' : ''}`}>Все дни</button>{days.map((_, idx) => <button key={idx} onClick={() => setActiveDay(idx)} className={`day-tab text-xs px-3 py-1 rounded-lg ${activeDay === idx ? 'active' : ''}`}>День {idx + 1}</button>)}</div>}
+                                            <h3 className="font-bold mb-2">{activeDay !== null ? `День ${activeDay + 1}` : 'Весь маршрут'}</h3>
+                                            <div className="space-y-2 max-h-80 overflow-auto pr-2">
+                                                {(activeDay !== null ? days[activeDay] : optimizedRoute).map((p, idx) => (
+                                                    <div key={p.id} className="route-point" data-index={idx + 1}>
+                                                        <div className="bg-gray-50 p-2 rounded-lg text-sm">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className="font-medium pr-2">{p.title}</span>
+                                                                <button onClick={() => removeFromRoute(p)} className="text-red-400 hover:text-red-600 flex-shrink-0"><Icons.Trash /></button>
+                                                            </div>
+                                                            {p.travelFromPrev && <div className="text-xs text-gray-500 mt-1">🚗 {p.travelFromPrev.minutes} мин ({p.travelFromPrev.distance} км)</div>}
                                                         </div>
-                                                        {p.travelFromPrev && <div className="text-xs text-gray-500 mt-1">🚗 {p.travelFromPrev.minutes} мин ({p.travelFromPrev.distance} км)</div>}
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
+                                            <div className="mt-3 pt-2 border-t"><div className="flex justify-between text-sm"><span>Общая стоимость:</span><span className="font-bold">{optimizedRoute.reduce((s, p) => s + p.price, 0).toLocaleString()} ₽</span></div></div>
                                         </div>
-                                        <div className="mt-3 pt-2 border-t"><div className="flex justify-between text-sm"><span>Общая стоимость:</span><span className="font-bold">{optimizedRoute.reduce((s, p) => s + p.price, 0).toLocaleString()} ₽</span></div></div>
                                     </div>
                                 )}
                             </div>
-                        </aside>
+                        </main>
                     </div>
                 </div>
             </div>

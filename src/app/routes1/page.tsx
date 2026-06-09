@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Head from 'next/head';
+import Script from 'next/script';
 import dynamic from 'next/dynamic';
-import { YandexMapsScript } from '@/components/shared/yandex-maps';
 import { Home, Coffee, Gamepad, Car, Footprints, Bus, Route, Check, Trash2, Save, Share2, Locate, Star, MapPin, Filter, Loader } from 'lucide-react';
 
 // ======================== ИКОНКИ ========================
@@ -372,7 +372,11 @@ export default function Routes1Page() {
             <Head>
                 <title>TravelFinder + Маршруты</title>
             </Head>
-            <YandexMapsScript onLoad={() => setMapReady(true)} />
+            <Script
+                src="https://api-maps.yandex.ru/2.1/?apikey=&lang=ru_RU"
+                strategy="lazyOnload"
+                onLoad={() => setMapReady(true)}
+            />
              <style jsx global>{`
                 .route-card.selected { border: 2px solid #6366f1; background: #eef2ff; transform: scale(1.02); }
                 .route-point { position: relative; padding-left: 40px; }

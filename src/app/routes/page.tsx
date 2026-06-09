@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Head from 'next/head';
-import Script from 'next/script';
 import dynamic from 'next/dynamic';
+import { YandexMapsScript } from '@/components/shared/yandex-maps';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 // ======================== ИКОНКИ ========================
@@ -348,7 +348,7 @@ export default function RouteBuilderPage() {
     return (
         <>
             <Head><title>Конструктор маршрута - {CITIES[currentCity]?.name}</title></Head>
-            <Script src="https://api-maps.yandex.ru/2.1/?apikey=&lang=ru_RU&load=package.full" strategy="lazyOnload" onLoad={() => setMapReady(true)} />
+            <YandexMapsScript onLoad={() => setMapReady(true)} />
             <style jsx global>{`
                 .day-tab.active { background: #6366f1; color: white; }
                 .transport-mode.active { background: #6366f1; color: white; border-color: #6366f1; }

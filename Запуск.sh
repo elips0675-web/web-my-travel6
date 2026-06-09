@@ -1,0 +1,1 @@
+cmd /c "cd /d C:\mytravel6 && npx next dev -p 9003"

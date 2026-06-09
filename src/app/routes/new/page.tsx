@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -43,7 +44,7 @@ const categoryLabels: { [key: string]: string } = {
     'rental-car': 'Транспорт'
 };
 
-export default function NewRoutePageContent() {
+function NewRoutePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -168,5 +169,13 @@ export default function NewRoutePageContent() {
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="text-center p-8">Загрузка...</div>}>
+      <NewRoutePageContent />
+    </Suspense>
   );
 }
